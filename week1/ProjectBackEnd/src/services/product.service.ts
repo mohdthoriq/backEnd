@@ -1,92 +1,81 @@
-import { books } from "../models/product.model"
+import { getPrisma} from "../prisma"
+import type { Product } from "../src/generated/prisma/client";
 
-export const getAllBooks = () => {
-    return { books, total: books.length }
+const prisma = getPrisma();
+
+export const getAllProducts = async(): Promise<{ products: Product[], total: number }> => {
+    const products = await prisma.product.findMany();
+    const total = products.length;
+
+    return { products, total };
 }
 
-export const getBookById = (id: string) => {
+export const getProductById = async(id: string): Promise<Product> => {
     const numId = parseInt(id);
-    const book = books.find(p => p.id === numId);
-
-    if (!book) {
-        throw new Error("Buku tidak ditemukan");
-    }
-    return book;
-}
-
-export const searchBooks = (name?: string, max_price?: string, min_price?: string) => {
-    let result = books;
-
-    if (typeof name === "string" && name.trim() !== "") {
-        result = result.filter(p =>
-            p.judul.toLowerCase().includes((name as string).toLowerCase())
-        );
-    }
-
-    if (max_price) {
-        const max = Number(max_price);
-        if (!isNaN(max)) {
-            result = result.filter(p => p.harga <= max);
+    const product = await prisma.product.findUnique({
+        where: {
+            id: numId
         }
+    });
+
+    if (!product) {
+        throw new Error("Product tidak ditemukan");
     }
 
-    if (min_price) {
-        const min = Number(min_price);
-        if (!isNaN(min)) {
-            result = result.filter(p => p.harga >= min);
+    return product;
+}
+
+export const searchProducts = async(name?: string, max_price?: number, min_price?: number): Promise<Product[]> => {
+    return await prisma.product.findMany({
+    where: {
+      ...(name && {
+        name: {
+          contains: name,
+          mode: "insensitive"
         }
+      }),
+      ...(max_price !== undefined || min_price !== undefined
+        ? {
+            price: {
+              ...(min_price !== undefined && { gte: min_price }),
+              ...(max_price !== undefined && { lte: max_price })
+            }
+          }
+        : {})
     }
-    return result;
+  });
 }
 
-export const createBook = (judul: string, penulis: string, tahun: number, harga: number) => {
-    const number = Number(harga);
-
-    if (isNaN(number)) {
-        throw new Error("Harga harus berupa angka");
-    }
-
-    const numberTahun = Number(tahun);
-    if (isNaN(numberTahun) || tahun.toString().length !== 4) {
-        throw new Error("Tahun harus berupa angka 4 digit");
-    }
-
-    const newBook = {
-        id: books.length + 1,
-        judul,
-        penulis,
-        tahun: numberTahun,
-        harga: number
-    };
-
-    books.push(newBook);
-
-    return books;
+export const createProduct = async(data: {name:string, description?:string, price:number, stock:number}): Promise<Product> => {
+    return await prisma.product.create({
+        data: {
+            name: data.name,
+            description: data.description ?? null,
+            price: data.price,
+            stock: data.stock
+        }
+    })
 }
 
-export const updateBook = (id: string, data: any) => {
+export const updateProduct = async(id: string, data: Partial<Product>): Promise<Product> => {
+   await getProductById(id);
+
     const numId = parseInt(id);
-    const index = books.findIndex(p => p.id === numId);
 
-    if (index === -1) {
-        throw new Error("Buku tidak ditemukan");
-    }
-
-    books[index] = { ...books[index], ...data };
-
-    return books[index];
-
+    return await prisma.product.update({
+        where: {
+            id: numId
+        },
+        data
+    })
 }
 
-export const deleteBook = (id: string) => {
+export const deleteProduct = async(id: string): Promise<Product> => {
     const numId = parseInt(id);
-      const index = books.findIndex(p => p.id === numId);
-    
-      if (index === -1) {
-       throw new Error("Buku tidak ditemukan");
-      }
-    
-      const deleted = books.splice(index, 1);
+    return await prisma.product.delete({
+        where: {
+            id: numId
+        }
+    })
 
-      return deleted;
 }

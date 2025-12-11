@@ -40,7 +40,7 @@ app.get('/', (_req: Request, res: Response) => {
     )
 })
 
-app.use('/:user/api/books',authValidate, productRouter)
+app.use('/:user/products',authValidate, productRouter)
 
 app.get(/.*/, (req: Request, res: Response) => {
     throw new Error(`Route ${req.originalUrl} tidak ada di API E-Commerce`);

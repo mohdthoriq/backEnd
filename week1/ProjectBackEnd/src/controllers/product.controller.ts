@@ -1,37 +1,37 @@
 import type { Request, Response } from "express"
 import { successResponse } from "../utils/response"
-import { createBook, deleteBook, getAllBooks, getBookById, searchBooks, updateBook } from "../services/product.service"
+import { createProduct, deleteProduct, getAllProducts, getProductById, searchProducts, updateProduct } from "../services/product.service"
 
-export const getAll = (_req: Request, res: Response) => {
-    const { books, total } = getAllBooks()
+export const getAll = async(_req: Request, res: Response) => {
+    const { products, total } = await getAllProducts()
     successResponse(
         res,
-        "Daftar buku ditemukan",
+        "Daftar Product ditemukan",
         {
             jumlah: total,
-            data: books
+            data: products
         }
     )
 }
 
-export const getById = (req: Request, res: Response) => {
+export const getById = async(req: Request, res: Response) => {
     if (!req.params.id) {
         throw new Error("ID tidak ditemukan");
     }
 
-    const book = getBookById(req.params.id);
+    const product = await getProductById(req.params.id);
 
     successResponse(
         res,
-        "Buku ditemukan",
-        book,
+        "Product ditemukan",
+        product,
     )
 }
 
-export const search = (req: Request, res: Response) => {
+export const search = async(req: Request, res: Response) => {
     const { name, max_price, min_price } = req.query;
 
-    const result = searchBooks(name?.toString(), max_price?.toString(), min_price?.toString());
+    const result = await searchProducts(name?.toString(), Number(max_price), Number(min_price));
 
     successResponse(
         res,
@@ -40,42 +40,48 @@ export const search = (req: Request, res: Response) => {
     )
 }
 
-export const create = (req: Request, res: Response) => {
-    const { judul, penulis, tahun, harga } = req.body;
+export const create = async(req: Request, res: Response) => {
+    const { name, description, price, stock } = req.body;
+    const data = {
+       name: String(name),
+       price: Number(price),
+       stock: Number(stock),
+       ...(description && { description: String(description) })
+    };
 
-    const newBook = createBook(judul, penulis, tahun, harga);
+    const newProduct = await createProduct(data);
 
     successResponse(
         res,
-        "Buku berhasil ditambahkan",
-        newBook,
+        "product berhasil ditambahkan",
+        newProduct,
         null,
         201
     )
 }
 
-export const update = (req: Request, res: Response) => {
+export const update = async(req: Request, res: Response) => {
     if (!req.params.id) {
         throw new Error("ID tidak ditemukan");
     }
 
-    const book = updateBook(req.params.id!, req.body);
+    const product = await updateProduct(req.params.id!, req.body);
 
 
     successResponse(
         res,
         "Buku berhasil diperbarui",
-        book,
+        product,
     )
 }
 
-export const remove = (req: Request, res: Response) => {
+export const remove = async(req: Request, res: Response) => {
 
-    const deleted = deleteBook(req.params.id!);
+    const deleted = await deleteProduct(req.params.id!);
 
     successResponse(
         res,
-        "Buku berhasil dihapus",
+        "product berhasil dihapus",
         deleted,
     )
 }

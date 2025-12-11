@@ -20,32 +20,35 @@ export const validate = (validations: ValidationChain[]) => {
     }
 }
 
-export const createBookValidation = [
-    body('judul')
+export const createProductValidation = [
+    body('name')
         .trim()
         .notEmpty()
-        .withMessage('Judul harus diisi')
-        .isLength({ min: 3, max: 100})
-        .withMessage('Judul tidak boleh kurang dari 3 karakter atau lebih dari 100 karakter'),
-    body('penulis')
-        .trim()
-        .notEmpty()
-        .withMessage('Penulis harus diisi')
-        .isLength({ min: 3 })
-        .withMessage('Penulis tidak boleh kurang dari 3 karakter'),
-    body('tahun')
-        .trim()
-        .notEmpty()
-        .withMessage('Tahun harus diisi')
-        .isInt({ min: 1900, max: new Date().getFullYear() }),
-    body('harga')
-        .trim()
-        .notEmpty()
-        .withMessage('Harga harus diisi')
-        .isInt({ min: 10000 })
-]
+        .withMessage('name wajib diisi')
+        .isLength({ min: 3, max: 100 })
+        .withMessage('name minimal 3 karakter dan maksimal 100'),
 
-export const getBooksByIdValidation = [
+    body('description')
+        .optional()
+        .trim()
+        .isLength({ min: 3 })
+        .withMessage('description minimal 3 karakter'),
+
+    body('price')
+        .notEmpty()
+        .withMessage('price wajib diisi')
+        .isFloat({ min: 1 })
+        .withMessage('price harus berupa angka dan minimal 1'),
+
+    body('stock')
+        .notEmpty()
+        .withMessage('stock wajib diisi')
+        .isInt({ min: 0 })
+        .withMessage('stock harus berupa angka dan minimal 0'),
+];
+
+
+export const getProductsByIdValidation = [
     param('id')
         .isNumeric()
         .withMessage('ID harus berupa angka')
