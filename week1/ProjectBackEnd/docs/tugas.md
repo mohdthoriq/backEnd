@@ -97,43 +97,61 @@ toko_laptop_db-# limit 1;
 (1 row)
 
 
-Kuis SQL — Jawaban
-1. Relasi Penulis – Buku (1 penulis banyak buku)
+## Kuis Pilihan Ganda (Latihan)
 
-Jawaban: b. One-to-Many
+1. **Mengapa kita perlu melakukan validasi input?**  
+   **Jawaban:** b. Mencegah data sampah atau berbahaya masuk ke sistem
 
-2. Fungsi FOREIGN KEY
+2. **Library populer untuk validasi di Express.js adalah...**  
+   **Jawaban:** b. express-validator
 
-Jawaban: b. Menghubungkan satu tabel ke tabel lain
+3. **HTTP Status Code yang tepat jika validasi gagal adalah...**  
+   **Jawaban:** c. 400 Bad Request
 
-3. Mengambil data dari dua tabel berelasi
+4. **Dalam Prisma, relasi One-to-Many didefinisikan dengan...**  
+   **Jawaban:** a. Array di satu sisi (Product[]) dan field relation di sisi lain
 
-Jawaban: c. JOIN
+5. **Apa fungsi include saat melakukan query findMany?**  
+   **Jawaban:** c. Mengambil data relasi (join) agar ikut muncul di response
 
-4. JOIN yang hanya menampilkan data jika kedua tabel punya pasangan
+6. **Jika Product punya categoryId, maka categoryId disebut sebagai...**  
+   **Jawaban:** b. Foreign Key
 
-Jawaban: c. INNER JOIN
+7. **Apa arti @relation(fields: [categoryId], references: [id]) di schema Prisma?**  
+   **Jawaban:** c. Mendefinisikan hubungan Foreign Key
 
-5. LEFT JOIN ketika data di tabel kanan tidak ada
+8. **Format JSON response error validasi yang baik adalah...**  
+   **Jawaban:** c. {"success": false, "errors": [...]}
 
-Jawaban: b. Data tabel kanan berisi NULL
+9. **Kapan validasi sebaiknya dilakukan?**  
+   **Jawaban:** b. Sebelum data diproses atau disimpan ke database
 
-6. Fungsi agregasi untuk menghitung jumlah baris data
+10. **Library validasi modern yang sangat Type-safe dan cocok dengan TypeScript adalah...**  
+    **Jawaban:** b. Zod
 
-Jawaban: c. COUNT()
+11. **File konfigurasi utama setup Prisma kustom adalah...**  
+    **Jawaban:** b. prisma.config.ts
 
-7. GROUP BY biasanya dipakai bersama...
+12. **Lokasi file schema model sesuai prisma.config.ts adalah...**  
+    **Jawaban:** c. src/prisma/schema/
 
-Jawaban: c. Fungsi Agregasi (COUNT, SUM, dll)
+13. **Entry point schema di prisma.config.ts adalah...**  
+    **Jawaban:** a. src/prisma/schema/base.prisma
 
-8. Memfilter hasil setelah GROUP BY
+14. **Cara mendefinisikan fungsi service?**  
+    **Jawaban:** c. export const getAllProducts = async () => {}
 
-Jawaban: b. HAVING
+15. **Lokasi file migrasi sesuai konfigurasi?**  
+    **Jawaban:** b. src/prisma/migrations
 
-9. Kegunaan LIMIT dan OFFSET
+16. **Jika ingin membuat model baru Transaction, apa yang harus dilakukan?**  
+    **Jawaban:** b. Buat file baru src/prisma/schema/Transaction.prisma
 
-Jawaban: c. Untuk Pagination (Halaman)
+17. **Cara mengimport semua fungsi dari product.service.ts ke controller?**  
+    **Jawaban:** c. import * as productService from '../services/product.service'
 
-10. Relasi Many-to-Many membutuhkan...
+18. **Dari mana prisma.config.ts mengambil URL database?**  
+    **Jawaban:** c. Langsung dari process.env
 
-Jawaban: c. 3 Tabel (1 tabel pivot/penghubung)
+19. **Mengapa schema dipecah jadi modular?**  
+    **Jawaban:** b. Agar file tidak terlalu panjang dan mudah di-maintain

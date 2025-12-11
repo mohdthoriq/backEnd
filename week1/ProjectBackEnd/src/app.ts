@@ -9,6 +9,7 @@ import userRouter from "./routes/user.router";
 import { authValidate } from "./middlewares/user.validation";
 import { apiKeyValidate } from "./middlewares/api.key";
 import { requestLogger } from "./middlewares/logging.middleware";
+import categoryRouter from "./routes/category.routes";
 
 const app: Application = express()
 
@@ -41,6 +42,7 @@ app.get('/', (_req: Request, res: Response) => {
 })
 
 app.use('/:user/products',authValidate, productRouter)
+app.use('/:user/categories', authValidate, categoryRouter)
 
 app.get(/.*/, (req: Request, res: Response) => {
     throw new Error(`Route ${req.originalUrl} tidak ada di API E-Commerce`);

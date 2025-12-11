@@ -41,11 +41,12 @@ export const search = async(req: Request, res: Response) => {
 }
 
 export const create = async(req: Request, res: Response) => {
-    const { name, description, price, stock } = req.body;
+    const { name, description, price, stock, categoryId } = req.body;
     const data = {
        name: String(name),
        price: Number(price),
        stock: Number(stock),
+       categoryId: Number(categoryId),
        ...(description && { description: String(description) })
     };
 
@@ -70,7 +71,7 @@ export const update = async(req: Request, res: Response) => {
 
     successResponse(
         res,
-        "Buku berhasil diperbarui",
+        "Product berhasil diperbarui",
         product,
     )
 }

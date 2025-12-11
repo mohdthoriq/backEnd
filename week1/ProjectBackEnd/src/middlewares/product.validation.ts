@@ -1,24 +1,4 @@
-import type { NextFunction, Request, Response } from "express"
-import { body, param, validationResult, type ValidationChain } from "express-validator"
-import { errorResponse } from "../utils/response"
-
-
-export const validate = (validations: ValidationChain[]) => {
-    return async (req: Request, res: Response, next: NextFunction) => {
-        await Promise.all(validations.map(validation => validation.run(req)))
-
-        const errors = validationResult(req)
-        if (errors.isEmpty()) {
-            return next()
-        }
-
-        const errorList = errors.array().map(err => ({
-            field: err.type === 'field' ? err.path : 'body',
-            message: err.msg
-        }))
-        return errorResponse(res, 'Validation Error', 400, errorList)
-    }
-}
+import { body, param } from "express-validator"
 
 export const createProductValidation = [
     body('name')
@@ -36,15 +16,22 @@ export const createProductValidation = [
 
     body('price')
         .notEmpty()
+        .isNumeric()
+        .toFloat()
         .withMessage('price wajib diisi')
-        .isFloat({ min: 1 })
-        .withMessage('price harus berupa angka dan minimal 1'),
+        .custom(value => value > 0).withMessage('price harus berupa angka lebih dari 1'),
 
     body('stock')
         .notEmpty()
+        .isNumeric()
         .withMessage('stock wajib diisi')
-        .isInt({ min: 0 })
-        .withMessage('stock harus berupa angka dan minimal 0'),
+        .custom(value => value >= 0).withMessage('stock harus berupa angka dan minimal 1'),
+        
+    body('categoryId')
+        .notEmpty()
+        .withMessage('categoryId wajib diisi')
+        .isNumeric()
+        .custom(value => value > 0).withMessage('categoryId harus berupa angka lebih dari 1')
 ];
 
 
