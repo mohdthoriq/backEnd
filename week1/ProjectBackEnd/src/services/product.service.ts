@@ -7,6 +7,9 @@ export const getAllProducts = async (): Promise<{ products: Product[], total: nu
     const products = await prisma.product.findMany({
         include: {
             category: true
+        },
+        where: {
+            deletedAt: null
         }
     });
     const total = products.length;
@@ -19,6 +22,7 @@ export const getProductById = async (id: string): Promise<Product> => {
     const product = await prisma.product.findUnique({
         where: {
             id: numId,
+            deletedAt: null
         },
         include: {
             category: true
@@ -44,7 +48,8 @@ export const searchProducts = async (name?: string, max_price?: number, min_pric
             price: {
                 ...(min_price !== undefined && { gte: min_price }),
                 ...(max_price !== undefined && { lte: max_price })
-            }
+            },
+            deletedAt: null
         },
         include: {
             category: true
@@ -71,7 +76,8 @@ export const updateProduct = async (id: string, data: Partial<Product>): Promise
 
     return await prisma.product.update({
         where: {
-            id: numId
+            id: numId,
+            deletedAt: null
         },
         data
     })
@@ -79,9 +85,13 @@ export const updateProduct = async (id: string, data: Partial<Product>): Promise
 
 export const deleteProduct = async (id: string): Promise<Product> => {
     const numId = parseInt(id);
-    return await prisma.product.delete({
+    return await prisma.product.update({
         where: {
-            id: numId
+            id: numId, 
+            deletedAt: null
+        },
+        data: {
+            deletedAt: new Date()
         }
     })
 }

@@ -10,6 +10,7 @@ export declare const createProduct: (data: {
     description?: string;
     price: number;
     stock: number;
+    categoryId?: number;
 }) => Promise<Product>;
 export declare const updateProduct: (id: string, data: Partial<Product>) => Promise<Product>;
 export declare const deleteProduct: (id: string) => Promise<Product>;
