@@ -9,6 +9,7 @@ import userRouter from "./routes/user.router";
 import { authValidate } from "./middlewares/user.validation";
 import { apiKeyValidate } from "./middlewares/api.key";
 import { requestLogger } from "./middlewares/logging.middleware";
+import categoryRouter from "./routes/category.routes";
 const app = express();
 app.use(express.json());
 app.use(morgan('dev')); // Middleware logging HTTP request
@@ -29,7 +30,8 @@ app.get('/', (_req, res) => {
         status: "Server hidup!",
     });
 });
-app.use('/:user/api/books', authValidate, productRouter);
+app.use('/:user/products', authValidate, productRouter);
+app.use('/:user/categories', authValidate, categoryRouter);
 app.get(/.*/, (req, res) => {
     throw new Error(`Route ${req.originalUrl} tidak ada di API E-Commerce`);
 });
