@@ -1,7 +1,79 @@
 import { getPrisma } from "../prisma"
 import type { Order } from "../src/generated/prisma/client";
+import { getItemById } from "./order_items.service";
 
 const prisma = getPrisma();
+
+export interface CreateOrder {
+    userId: number;
+    total: number;
+    orderItems: OrderItems[];
+}
+
+export interface OrderItems {
+    productId: number;
+    quantity: number;
+}
+
+export const checkoutOrder = async (data: CreateOrder) => {
+    // hitung harga total
+    let total = 0 
+    const productIds = await data.orderItems.map(i => i.productId)
+    for (const id of productIds) {
+        const price = await prisma.product.findUnique({
+            where: {
+                id,
+            },
+            select: {
+                price: true
+            }
+        })
+        total += Number(price?.price)
+    }
+    // buat order
+    try {
+        const result = await prisma.$transaction(async(tx) => {
+            const newOrder = await tx.order.create({
+                data: {
+                    user_id: data.userId,
+                    total
+                }
+            })
+            for (const item of data.orderItems) {
+                await tx.orderItem.create({
+                    data: {
+                        order_id: newOrder.id,
+                        product_id: item.productId,
+                        quantity: item.quantity,
+                    }
+                })
+            }
+            return newOrder
+        })
+    } catch (error) {
+        throw new Error(`gagal checkout order: ${error}`)
+    }
+}
+
+export const getCheckoutById = async (id: number) => {
+    return await prisma.order.findUnique({
+        where: {
+            id
+        },
+        include: {
+            user: {
+                select: {
+                    username: true,
+                }
+            },
+            items: {
+                include: {
+                    product: true
+                }
+            }
+        }
+    })
+}
 
 export const getAllOrders = async (): Promise<Order[]> => {
     return await prisma.order.findMany({

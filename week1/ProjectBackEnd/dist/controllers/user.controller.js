@@ -1,12 +1,13 @@
 import { loginUser } from "../services/user.service";
 import { successResponse } from "../utils/response";
-export const login = (req, res) => {
-    const { username, password } = req.body;
-    const user = loginUser(username, password);
-    const tokenList = user.token;
+export const login = async (req, res) => {
+    const { username, email, password } = req.body;
+    const user = await loginUser(username, email, password);
     successResponse(res, "Login berhasil", {
-        user: username,
-        token: tokenList
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        token: user.token
     });
 };
 //# sourceMappingURL=user.controller.js.map

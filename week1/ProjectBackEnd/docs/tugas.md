@@ -1,31 +1,67 @@
-Kuis Pilihan Ganda (Latihan) — Jawaban
-
-Mengapa kita perlu Centralized Error Handling?
-Jawaban: b. Agar penanganan error konsisten dan tidak perlu try-catch berulang di setiap controller
-
-HTTP Status Code untuk "Data tidak ditemukan" adalah...
-Jawaban: c. 404
-
-HTTP Status Code untuk "Internal Server Error" (Server Crash) adalah...
-Jawaban: d. 500
-
-Apa itu "Soft Delete"?
-Jawaban: c. Menandai data sebagai "terhapus" (misal dengan kolom deletedAt) tanpa benar-benar menghapusnya dari database
-
-Library express-async-errors berfungsi untuk...
-Jawaban: b. Menangani error di fungsi async secara otomatis tanpa perlu try-catch manual di setiap route
-
-Jika user gagal login karena password salah, status code yang tepat adalah...
-Jawaban: b. 401 Unauthorized
-
-Kode error Prisma untuk "Unique Constraint Violation" (Data kembar) adalah...
-Jawaban: a. P2002
-
-Di mana sebaiknya kita meletakkan middleware Error Handler di Express?
-Jawaban: c. Paling bawah setelah semua route
-
-Apa bahayanya menampilkan err.stack ke user di production?
-Jawaban: b. User jadi tahu struktur folder dan celah keamanan server kita
-
-Status code 201 Created biasanya digunakan setelah berhasil melakukan...
-Jawaban: b. POST (Create Data)
+{
+    "success": true,
+    "message": "Success",
+    "data": {
+        "id": 1,
+        "user_id": 8,
+        "total": "4822.22",
+        "createdAt": "2025-12-15T02:51:46.739Z",
+        "updatedAt": "2025-12-15T02:51:46.739Z",
+        "user": {
+            "username": "Sammy Macejkovic"
+        },
+        "items": [
+            {
+                "id": 1,
+                "order_id": 1,
+                "product_id": 95,
+                "quantity": "3",
+                "product": {
+                    "id": 95,
+                    "name": "Sleek Marble Keyboard",
+                    "description": "New violet Cheese with ergonomic design for failing comfort",
+                    "price": "475.59",
+                    "stock": 146,
+                    "categoryId": 5,
+                    "createdAt": "2025-12-15T02:51:46.692Z",
+                    "updatedAt": "2025-12-15T02:51:46.692Z",
+                    "deletedAt": null
+                }
+            },
+            {
+                "id": 2,
+                "order_id": 1,
+                "product_id": 75,
+                "quantity": "1",
+                "product": {
+                    "id": 75,
+                    "name": "Rustic Silk Mouse",
+                    "description": "The sleek and weighty Cheese comes with gold LED lighting for smart functionality",
+                    "price": "157.5",
+                    "stock": 95,
+                    "categoryId": 8,
+                    "createdAt": "2025-12-15T02:51:46.685Z",
+                    "updatedAt": "2025-12-15T02:51:46.685Z",
+                    "deletedAt": null
+                }
+            },
+            {
+                "id": 3,
+                "order_id": 1,
+                "product_id": 12,
+                "quantity": "5",
+                "product": {
+                    "id": 12,
+                    "name": "Practical Bamboo Chair",
+                    "description": "Discover the kangaroo-like agility of our Gloves, perfect for utter users",
+                    "price": "647.59",
+                    "stock": 301,
+                    "categoryId": 1,
+                    "createdAt": "2025-12-15T02:51:46.667Z",
+                    "updatedAt": "2025-12-15T02:51:46.667Z",
+                    "deletedAt": null
+                }
+            }
+        ]
+    }
+}

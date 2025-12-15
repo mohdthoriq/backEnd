@@ -43,10 +43,10 @@ app.get('/', (_req: Request, res: Response) => {
     )
 })
 
-app.use('/:user/products',authValidate, productRouter)
-app.use('/:user/categories', authValidate, categoryRouter)
-app.use('/:user/orders', authValidate, orderRouter)
-app.use('/:user/order-items', authValidate, orderItemRouter);
+app.use('/api/products',authValidate, productRouter)
+app.use('/api/categories', authValidate, categoryRouter)
+app.use('/api/orders', authValidate, orderRouter)
+app.use('/api/order-items', authValidate, orderItemRouter);
 
 app.get(/.*/, (req: Request, res: Response) => {
     throw new Error(`Route ${req.originalUrl} tidak ada di API E-Commerce`);

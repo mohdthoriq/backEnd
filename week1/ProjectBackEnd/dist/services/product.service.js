@@ -4,6 +4,9 @@ export const getAllProducts = async () => {
     const products = await prisma.product.findMany({
         include: {
             category: true
+        },
+        where: {
+            deletedAt: null
         }
     });
     const total = products.length;
@@ -14,6 +17,7 @@ export const getProductById = async (id) => {
     const product = await prisma.product.findUnique({
         where: {
             id: numId,
+            deletedAt: null
         },
         include: {
             category: true
@@ -36,7 +40,8 @@ export const searchProducts = async (name, max_price, min_price) => {
             price: {
                 ...(min_price !== undefined && { gte: min_price }),
                 ...(max_price !== undefined && { lte: max_price })
-            }
+            },
+            deletedAt: null
         },
         include: {
             category: true
@@ -59,7 +64,8 @@ export const updateProduct = async (id, data) => {
     const numId = parseInt(id);
     return await prisma.product.update({
         where: {
-            id: numId
+            id: numId,
+            deletedAt: null
         },
         data
     });
@@ -68,7 +74,8 @@ export const deleteProduct = async (id) => {
     const numId = parseInt(id);
     return await prisma.product.update({
         where: {
-            id: numId
+            id: numId,
+            deletedAt: null
         },
         data: {
             deletedAt: new Date()
