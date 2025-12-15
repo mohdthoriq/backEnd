@@ -1,11 +1,31 @@
-import { users } from "../models/user.model";
+import { getPrisma } from "../prisma";
 
-export const loginUser = (username: string, password: string) => {
-    const user = users.find(u => u.username === username && u.password === password);
+const prisma = getPrisma();
 
-    if (!user || user.password !== password) {
-        throw new Error("Username atau password salah");
+export const loginUser = async (
+    username: string,
+    email: string,
+    password: string
+) => {
+    const user = await prisma.user.findUnique({
+        where: {
+            email,
+        }
+    });
+
+    if (!user) {
+        throw new Error("User tidak ditemukan");
     }
 
-    return user;
-}
+
+    if (user.password !== password) {
+        throw new Error("Username, email, atau password salah");
+    }
+
+    return {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        token: user.token
+    };
+};

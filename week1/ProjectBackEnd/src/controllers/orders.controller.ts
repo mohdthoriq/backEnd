@@ -2,6 +2,25 @@ import type { Request, Response } from "express";
 import * as order from "../services/orders.service";
 import { successResponse } from "../utils/response";
 
+export const checkout = async(req: Request, res: Response) => {
+    const data: order.CreateOrder = req.body;
+
+    const result = await order.checkoutOrder(data);
+
+    successResponse(res, 'order checkout successfully', result, null, 201);
+}
+
+export const checkoutById = async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id!);
+    if (isNaN(id)) {
+        throw new Error("ID tidak valid");
+    }
+
+    const data = await order.getCheckoutById(id);
+
+    successResponse(res, 'Success', data);
+}
+
 export const getAll = async(req: Request, res: Response) => {
     const data = await order.getAllOrders();
 

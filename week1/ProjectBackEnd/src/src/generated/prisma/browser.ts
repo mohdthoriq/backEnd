@@ -37,3 +37,8 @@ export type Order = Prisma.OrderModel
  * 
  */
 export type Product = Prisma.ProductModel
+/**
+ * Model User
+ * 
+ */
+export type User = Prisma.UserModel

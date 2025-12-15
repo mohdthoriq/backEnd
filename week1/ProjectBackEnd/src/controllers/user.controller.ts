@@ -2,19 +2,15 @@ import type { Request, Response } from "express";
 import { loginUser } from "../services/user.service";
 import { successResponse } from "../utils/response";
 
-export const login = (req: Request, res: Response) => {
-    const { username, password } = req.body;
+export const login = async (req: Request, res: Response) => {
+    const { username, email, password } = req.body;
 
-    const user = loginUser(username, password);
+    const user = await loginUser(username, email, password);
 
-    const tokenList = user.token;
-
-    successResponse(
-        res,
-        "Login berhasil",
-        {
-            user: username,
-            token: tokenList
-        }
-    )
-}
+    successResponse(res, "Login berhasil", {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        token: user.token
+    });
+};

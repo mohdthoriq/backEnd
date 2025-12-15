@@ -1,30 +1,30 @@
 import type { NextFunction, Request, Response } from "express";
+import { getPrisma } from "../prisma";
 
-export const authValidate = (req: Request, res: Response, next: NextFunction) => {
-    const token = req.headers.authorization;
+const prisma = getPrisma();
 
-    if (!token) {
-        throw new Error("Token tidak ditemukan");
-    }
+export const authValidate = async (
+  req: Request,
+  _res: Response,
+  next: NextFunction
+) => {
+  const authHeader = req.headers.authorization;
 
-    const realToken = token.trim();
+  if (!authHeader) {
+    throw new Error("Token tidak ditemukan");
+  }
 
-    const validUser = [
-        { username: 'eko', token: 'A01' },
-        { username: 'bambang', token: 'A02' }
-    ]
+  const token = authHeader.trim();
 
-    const user = validUser.find(u => u.token === realToken);
+  const user = await prisma.user.findUnique({
+    where: { token }
+  });
 
-    if (!user) {
-        throw new Error("Token tidak valid");
-    }
+  if (!user) {
+    throw new Error("Token tidak valid");
+  }
 
-    console.log(req.params.user, user.username)
+  (req as any).authUser = user;
 
-    if (req.params.user !== user.username) {
-        throw new Error("Token tidak sesuai");
-    }
-
-    next();
-}
+  next();
+};

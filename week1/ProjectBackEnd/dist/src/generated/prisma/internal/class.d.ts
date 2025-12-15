@@ -123,6 +123,28 @@ export interface PrismaClient<in LogOpts extends Prisma.LogLevel = never, in out
         omit: OmitOpts;
     }>;
     /**
+     * `prisma.orderItem`: Exposes CRUD operations for the **OrderItem** model.
+      * Example usage:
+      * ```ts
+      * // Fetch zero or more OrderItems
+      * const orderItems = await prisma.orderItem.findMany()
+      * ```
+      */
+    get orderItem(): Prisma.OrderItemDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    /**
+     * `prisma.order`: Exposes CRUD operations for the **Order** model.
+      * Example usage:
+      * ```ts
+      * // Fetch zero or more Orders
+      * const orders = await prisma.order.findMany()
+      * ```
+      */
+    get order(): Prisma.OrderDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    /**
      * `prisma.product`: Exposes CRUD operations for the **Product** model.
       * Example usage:
       * ```ts
@@ -131,6 +153,17 @@ export interface PrismaClient<in LogOpts extends Prisma.LogLevel = never, in out
       * ```
       */
     get product(): Prisma.ProductDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    /**
+     * `prisma.user`: Exposes CRUD operations for the **User** model.
+      * Example usage:
+      * ```ts
+      * // Fetch zero or more Users
+      * const users = await prisma.user.findMany()
+      * ```
+      */
+    get user(): Prisma.UserDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;
 }

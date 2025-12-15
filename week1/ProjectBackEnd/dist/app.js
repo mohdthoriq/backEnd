@@ -6,10 +6,12 @@ import { successResponse } from "./utils/response";
 import { errorHandler } from "./middlewares/error.handler";
 import productRouter from "./routes/product.routes";
 import userRouter from "./routes/user.router";
-import { authValidate } from "./middlewares/user.validation";
+import categoryRouter from "./routes/category.routes";
+import orderRouter from "./routes/orders.routes";
+import orderItemRouter from "./routes/order_items.routes";
+import { authValidate } from "./validations/user.validation";
 import { apiKeyValidate } from "./middlewares/api.key";
 import { requestLogger } from "./middlewares/logging.middleware";
-import categoryRouter from "./routes/category.routes";
 const app = express();
 app.use(express.json());
 app.use(morgan('dev')); // Middleware logging HTTP request
@@ -32,6 +34,8 @@ app.get('/', (_req, res) => {
 });
 app.use('/:user/products', authValidate, productRouter);
 app.use('/:user/categories', authValidate, categoryRouter);
+app.use('/:user/orders', authValidate, orderRouter);
+app.use('/:user/order-items', authValidate, orderItemRouter);
 app.get(/.*/, (req, res) => {
     throw new Error(`Route ${req.originalUrl} tidak ada di API E-Commerce`);
 });

@@ -2,12 +2,19 @@ import e from "express";
 import { getPrisma } from "../prisma";
 const prisma = getPrisma();
 export const getAllCategories = async () => {
-    return await prisma.category.findMany();
+    return await prisma.category.findMany({
+        where: {
+            deletedAt: null
+        },
+        include: {
+            products: true
+        }
+    });
 };
 export const getCategoryById = async (id) => {
     const numId = parseInt(id);
     return await prisma.category.findUnique({
-        where: { id: numId },
+        where: { id: numId, deletedAt: null },
     });
 };
 export const searchCategories = async (name) => {
@@ -18,7 +25,8 @@ export const searchCategories = async (name) => {
                     contains: name,
                     mode: "insensitive"
                 }
-            })
+            }),
+            deletedAt: null
         },
         include: {
             products: true
@@ -39,7 +47,8 @@ export const updateCategories = async (id, data) => {
     const numId = parseInt(id);
     return await prisma.category.update({
         where: {
-            id: numId
+            id: numId,
+            deletedAt: null
         },
         data
     });
@@ -48,7 +57,8 @@ export const deleteCategory = async (id) => {
     const numId = parseInt(id);
     return await prisma.category.delete({
         where: {
-            id: numId
+            id: numId,
+            deletedAt: null
         }
     });
 };
