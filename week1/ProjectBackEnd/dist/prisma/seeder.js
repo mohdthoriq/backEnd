@@ -35,7 +35,6 @@ async function main() {
                 username: faker.person.fullName(),
                 email: faker.internet.email().toLowerCase(),
                 password: password,
-                token: faker.string.uuid(),
             }
         });
     }));

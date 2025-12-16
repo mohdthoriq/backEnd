@@ -5,6 +5,14 @@ export const checkout = async (req, res) => {
     const result = await order.checkoutOrder(data);
     successResponse(res, 'order checkout successfully', result, null, 201);
 };
+export const checkoutById = async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+        throw new Error("ID tidak valid");
+    }
+    const data = await order.getCheckoutById(id);
+    successResponse(res, 'Success', data);
+};
 export const getAll = async (req, res) => {
     const data = await order.getAllOrders();
     successResponse(res, 'Success', data);

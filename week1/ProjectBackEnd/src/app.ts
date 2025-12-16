@@ -9,9 +9,8 @@ import userRouter from "./routes/user.router";
 import categoryRouter from "./routes/category.routes";
 import orderRouter from "./routes/orders.routes";
 import orderItemRouter from "./routes/order_items.routes";
-import { authValidate } from "./validations/user.validation";
-import { apiKeyValidate } from "./middlewares/api.key";
 import { requestLogger } from "./middlewares/logging.middleware";
+import { authenticate } from "./middlewares/auth.middlleware";
 
 const app: Application = express()
 
@@ -30,8 +29,6 @@ app.use(requestLogger)
 
 app.use('/auth', userRouter)
 
-app.use(apiKeyValidate);
-
 app.get('/', (_req: Request, res: Response) => {
     successResponse(
         res,
@@ -43,10 +40,10 @@ app.get('/', (_req: Request, res: Response) => {
     )
 })
 
-app.use('/api/products',authValidate, productRouter)
-app.use('/api/categories', authValidate, categoryRouter)
-app.use('/api/orders', authValidate, orderRouter)
-app.use('/api/order-items', authValidate, orderItemRouter);
+app.use('/api/products', productRouter)
+app.use('/api/categories',  categoryRouter)
+app.use('/api/orders', authenticate, orderRouter)
+app.use('/api/order-items', orderItemRouter);
 
 app.get(/.*/, (req: Request, res: Response) => {
     throw new Error(`Route ${req.originalUrl} tidak ada di API E-Commerce`);

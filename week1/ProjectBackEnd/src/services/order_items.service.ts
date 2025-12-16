@@ -3,7 +3,7 @@ import type { OrderItem } from "../src/generated/prisma/client";
 
 const prisma = getPrisma();
 
-export const getAllItems = async(): Promise<OrderItem[]> => {
+export const getAllItems = async (): Promise<OrderItem[]> => {
     return await prisma.orderItem.findMany({
         include: {
             order: true,
@@ -12,7 +12,7 @@ export const getAllItems = async(): Promise<OrderItem[]> => {
     })
 }
 
-export const getItemById = async(id: number): Promise<OrderItem> => {
+export const getItemById = async (id: number): Promise<OrderItem> => {
     const item = await prisma.orderItem.findUnique({
         where: {
             id
@@ -52,12 +52,23 @@ export const searchItems = async (
     });
 };
 
-export const createItem = async(data: { orderId: number, productId: number, quantity: number}): Promise<OrderItem> => {
+export const createItem = async (data: { orderId: number, productId: number, quantity: number }): Promise<OrderItem> => {
+    const order = await prisma.order.findUnique({
+        where: { id: data.orderId }
+    })
+    if (!order) throw new Error("Order tidak ditemukan")
+
+    const product = await prisma.product.findUnique({
+        where: { id: data.productId }
+    })
+    if (!product) throw new Error("Product tidak ditemukan")
+
     return await prisma.orderItem.create({
-        data : {
+        data: {
             order_id: data.orderId,
             product_id: data.productId,
-            quantity: data.quantity
+            quantity: data.quantity,
+            priceAtTime: product.price,
         },
         include: {
             order: true,
@@ -66,7 +77,7 @@ export const createItem = async(data: { orderId: number, productId: number, quan
     })
 }
 
-export const updateItem = async(id: number, data: { orderId: number, productId: number, quantity: number}): Promise<OrderItem> => {
+export const updateItem = async (id: number, data: { orderId: number, productId: number, quantity: number }): Promise<OrderItem> => {
     const item = await prisma.orderItem.findUnique({
         where: {
             id
@@ -92,7 +103,7 @@ export const updateItem = async(id: number, data: { orderId: number, productId: 
     })
 }
 
-export const deleteItem = async(id: number): Promise<void> => {
+export const deleteItem = async (id: number): Promise<void> => {
     const item = await prisma.orderItem.findUnique({
         where: {
             id

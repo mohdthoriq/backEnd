@@ -1,6 +1,5 @@
 import { getPrisma } from "../prisma"
 import type { Order } from "../src/generated/prisma/client";
-import { getItemById } from "./order_items.service";
 
 const prisma = getPrisma();
 
@@ -15,45 +14,82 @@ export interface OrderItems {
     quantity: number;
 }
 
-export const checkoutOrder = async (data: CreateOrder) => {
-    // hitung harga total
-    let total = 0 
-    const productIds = await data.orderItems.map(i => i.productId)
-    for (const id of productIds) {
-        const price = await prisma.product.findUnique({
-            where: {
-                id,
-            },
-            select: {
-                price: true
-            }
-        })
-        total += Number(price?.price)
+export const checkoutOrder = async (
+    userId: number,
+    items: { productId: number; quantity: number }[]
+) => {
+    if (!items || items.length === 0) {
+        throw new Error("Items tidak boleh kosong");
     }
-    // buat order
-    try {
-        const result = await prisma.$transaction(async(tx) => {
-            const newOrder = await tx.order.create({
-                data: {
-                    user_id: data.userId,
-                    total
+
+    return await prisma.$transaction(async (tx) => {
+        let total = 0;
+
+        const orderItemsData = [];
+
+        // 1️⃣ ambil data product asli + hitung total
+        for (const item of items) {
+            const product = await tx.product.findUnique({
+                where: { id: item.productId }
+            });
+
+            if (!product) {
+                throw new Error(`Product ID ${item.productId} not found`);
+            }
+
+            if (product.stock < item.quantity) {
+                throw new Error(`Stock product ${product.name} tidak cukup`);
+            }
+
+            const price = Number(product.price);
+            total += price * item.quantity;
+
+
+            orderItemsData.push({
+                quantity: item.quantity,
+                priceAtTime: product.price,
+                product: {
+                    connect: { id: item.productId }
                 }
-            })
-            for (const item of data.orderItems) {
-                await tx.orderItem.create({
-                    data: {
-                        order_id: newOrder.id,
-                        product_id: item.productId,
-                        quantity: item.quantity,
+            });
+
+            await tx.product.update({
+                where: { id: product.id },
+                data: {
+                    stock: { decrement: item.quantity }
+                }
+            });
+        }
+
+        const order = await tx.order.create({
+            data: {
+                total,
+                user: {
+                    connect: { id: userId }
+                },
+                items: {
+                    create: orderItemsData
+                }
+            },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        username: true
                     }
-                })
+                },
+                items: {
+                    include: {
+                        product: true
+                    }
+                }
             }
-            return newOrder
-        })
-    } catch (error) {
-        throw new Error(`gagal checkout order: ${error}`)
-    }
-}
+        });
+
+        return order;
+    });
+};
+
 
 export const getCheckoutById = async (id: number) => {
     return await prisma.order.findUnique({
@@ -131,35 +167,48 @@ export const searchOrders = async (
     });
 }
 
-export const createOrder = async (userId: number, items: { productId: number, quantity: number }[]) => {
-    if (!items || items.length === 0) {
-        throw new Error("Items tidak boleh kosong");
-    }
+export const createOrder = async (data: { userId: number, items: { productId: number, quantity: number, priceAtTime: number }[] }) => {
+    const user = await prisma.user.findUnique({
+        where: { id: data.userId }
+    })
 
-    const total = await Promise.all(items.map(async (item) => {
+    if (!user) throw new Error("User tidak ditemukan")
+
+    const products = await Promise.all(data.items.map(async (item) => {
         const product = await prisma.product.findUnique({
             where: {
                 id: item.productId
             }
-        });
-        if (!product) {
-            throw new Error(`Product dengan ID ${item.productId} tidak ditemukan`);
+        })
+        if (!product) throw new Error(`Product dengan ID ${item.productId} tidak ditemukan`);
+        return {
+            product_id: item.productId,
+            quantity: item.quantity,
+            priceAtTime: product.price
         }
-        return Number(product.price) * Number(item.quantity)
-    })).then(prices => prices.reduce((a, b) => a + b, 0));
+
+    }))
+
+    const total = products.reduce((sum, item) => sum + Number(item.priceAtTime) * item.quantity, 0)
 
     return await prisma.order.create({
         data: {
-            user_id: userId,
+            userId: data.userId,
             total,
             items: {
-                create: items.map(item => ({
-                    product_id: item.productId,
-                    quantity: item.quantity
+                create: products.map(item => ({
+                    product_id: item.product_id,
+                    quantity: item.quantity,
+                    priceAtTime: item.priceAtTime
                 }))
             }
         },
         include: {
+            user: {
+                select: {
+                    username: true
+                }
+            },
             items: {
                 include: {
                     product: true
@@ -169,7 +218,7 @@ export const createOrder = async (userId: number, items: { productId: number, qu
     })
 }
 
-export const updateOrder = async (id: number, items: { productId: number, quantity: number }[]) => {
+export const updateOrder = async (id: number, items: { productId: number, quantity: number, priceAtTime: number }[]) => {
     await getOrderById(id);
 
     await prisma.orderItem.deleteMany({
@@ -178,7 +227,7 @@ export const updateOrder = async (id: number, items: { productId: number, quanti
         }
     })
 
-    const total = await Promise.all(items.map(async(item) => {
+    const total = await Promise.all(items.map(async (item) => {
         const product = await prisma.product.findUnique({
             where: {
                 id: item.productId
@@ -200,7 +249,8 @@ export const updateOrder = async (id: number, items: { productId: number, quanti
             items: {
                 create: items.map((item) => ({
                     product_id: item.productId,
-                    quantity: item.quantity
+                    quantity: item.quantity,
+                    priceAtTime: item.priceAtTime
                 }))
             }
         },
