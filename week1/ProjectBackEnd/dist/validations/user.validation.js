@@ -12,9 +12,6 @@ export const authValidate = async (req, _res, next) => {
     if (!user) {
         throw new Error("Token tidak valid");
     }
-    if (req.params.user !== user.username) {
-        throw new Error("Token tidak sesuai dengan user");
-    }
     req.authUser = user;
     next();
 };

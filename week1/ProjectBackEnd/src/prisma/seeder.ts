@@ -47,7 +47,6 @@ async function main() {
           username: faker.person.fullName(),
           email: faker.internet.email().toLowerCase(),
           password: password,
-          token: faker.string.uuid(),
         }
       });
     })
@@ -86,17 +85,19 @@ async function main() {
 
       return {
         productId: product.id,
-        quantity
+        quantity,
+        priceAtTime: product.price
       };
     });
 
     const order = await prisma.order.create({
       data: {
-        user_id: user.id,
+        userId: user.id,
         total,
         items: {
           create: orderItemsData.map(item => ({
             quantity: item.quantity,
+            priceAtTime: item.priceAtTime,
             product: {
               connect: {
                 id: item.productId

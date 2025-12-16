@@ -2,13 +2,19 @@ import type { Request, Response } from "express";
 import * as order from "../services/orders.service";
 import { successResponse } from "../utils/response";
 
-export const checkout = async(req: Request, res: Response) => {
-    const data: order.CreateOrder = req.body;
 
-    const result = await order.checkoutOrder(data);
+export const checkout = async (req: Request, res: Response) => {
+    if (!req.user) {
+    throw new Error("Unauthorized");
+  }
 
-    successResponse(res, 'order checkout successfully', result, null, 201);
-}
+  const { items } = req.body;
+
+  const result = await order.checkoutOrder(req.user.id, items);
+
+  successResponse(res, "Order checkout successfully", result, null, 201);
+};
+
 
 export const checkoutById = async (req: Request, res: Response) => {
     const id = parseInt(req.params.id!);
@@ -49,15 +55,19 @@ export const search = async (req: Request, res: Response) => {
 };
 
 export const create = async(req: Request, res: Response) => {
-    const { userId, items } = req.body;
+   if (!req.user) {
+    throw new Error("Unauthorized");
+  }
 
-    if (isNaN(userId || !userId)) {
-        throw new Error("User ID tidak valid");
-    }
+  const { items } = req.body;
 
-    const data = await order.createOrder(userId, items);
 
-    successResponse(res, 'Order created successfully', data);
+  const data = await order.createOrder({
+    userId: req.user.id,
+    items,
+  });
+
+  successResponse(res, "Order created successfully", data);
 }
 
 export const update = async(req: Request, res: Response) => {

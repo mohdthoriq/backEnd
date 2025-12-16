@@ -22,9 +22,9 @@ export declare const searchItems: (orderId?: number, productId?: number, minQty?
     };
 } & {
     id: number;
-    quantity: import("@prisma/client-runtime-utils").Decimal;
-    product_id: number;
     order_id: number;
+    product_id: number;
+    quantity: import("@prisma/client-runtime-utils").Decimal;
 })[]>;
 export declare const createItem: (data: {
     orderId: number;

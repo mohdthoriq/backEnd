@@ -9,9 +9,9 @@ import userRouter from "./routes/user.router";
 import categoryRouter from "./routes/category.routes";
 import orderRouter from "./routes/orders.routes";
 import orderItemRouter from "./routes/order_items.routes";
-import { authValidate } from "./validations/user.validation";
 import { apiKeyValidate } from "./middlewares/api.key";
 import { requestLogger } from "./middlewares/logging.middleware";
+import { authenticate } from "./middlewares/auth.middlleware";
 const app = express();
 app.use(express.json());
 app.use(morgan('dev')); // Middleware logging HTTP request
@@ -32,10 +32,10 @@ app.get('/', (_req, res) => {
         status: "Server hidup!",
     });
 });
-app.use('/:user/products', authValidate, productRouter);
-app.use('/:user/categories', authValidate, categoryRouter);
-app.use('/:user/orders', authValidate, orderRouter);
-app.use('/:user/order-items', authValidate, orderItemRouter);
+app.use('/api/products', productRouter);
+app.use('/api/categories', categoryRouter);
+app.use('/api/orders', authenticate, orderRouter);
+app.use('/api/order-items', orderItemRouter);
 app.get(/.*/, (req, res) => {
     throw new Error(`Route ${req.originalUrl} tidak ada di API E-Commerce`);
 });

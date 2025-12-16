@@ -1,4 +1,5 @@
 import { getPrisma } from "../prisma";
+import { getItemById } from "./order_items.service";
 const prisma = getPrisma();
 export const checkoutOrder = async (data) => {
     // hitung harga total
@@ -18,10 +19,10 @@ export const checkoutOrder = async (data) => {
     // buat order
     try {
         const result = await prisma.$transaction(async (tx) => {
-            const newOrder = await prisma.order.create({
+            const newOrder = await tx.order.create({
                 data: {
                     user_id: data.userId,
-                    total: data.total,
+                    total
                 }
             });
             for (const item of data.orderItems) {
@@ -39,6 +40,25 @@ export const checkoutOrder = async (data) => {
     catch (error) {
         throw new Error(`gagal checkout order: ${error}`);
     }
+};
+export const getCheckoutById = async (id) => {
+    return await prisma.order.findUnique({
+        where: {
+            id
+        },
+        include: {
+            user: {
+                select: {
+                    username: true,
+                }
+            },
+            items: {
+                include: {
+                    product: true
+                }
+            }
+        }
+    });
 };
 export const getAllOrders = async () => {
     return await prisma.order.findMany({
