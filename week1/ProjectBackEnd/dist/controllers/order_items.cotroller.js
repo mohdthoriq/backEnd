@@ -22,13 +22,21 @@ export const search = async (req, res) => {
 };
 export const create = async (req, res) => {
     const { orderId, productId, quantity } = req.body;
-    const order_id = parseInt(orderId);
-    const product_id = parseInt(productId);
-    if (isNaN(order_id) || isNaN(product_id)) {
-        throw new Error("Order ID atau Product ID tidak valid");
+    const parsedOrderId = Number(orderId);
+    const parsedProductId = Number(productId);
+    const parsedQty = Number(quantity);
+    if (isNaN(parsedOrderId) ||
+        isNaN(parsedProductId) ||
+        isNaN(parsedQty) ||
+        parsedQty <= 0) {
+        throw new Error("Order ID, Product ID, atau quantity tidak valid");
     }
-    const data = await items.createItem({ orderId: order_id, productId: product_id, quantity });
-    successResponse(res, 'Order item created successfully', data);
+    const data = await items.createItem({
+        orderId: parsedOrderId,
+        productId: parsedProductId,
+        quantity: parsedQty,
+    });
+    successResponse(res, "Order item created successfully", data);
 };
 export const update = async (req, res) => {
     const id = parseInt(req.params.id);

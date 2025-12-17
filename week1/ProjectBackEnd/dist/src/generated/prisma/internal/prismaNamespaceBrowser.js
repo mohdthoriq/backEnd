@@ -65,11 +65,12 @@ export const OrderItemScalarFieldEnum = {
     id: 'id',
     order_id: 'order_id',
     product_id: 'product_id',
-    quantity: 'quantity'
+    quantity: 'quantity',
+    priceAtTime: 'priceAtTime'
 };
 export const OrderScalarFieldEnum = {
     id: 'id',
-    user_id: 'user_id',
+    userId: 'userId',
     total: 'total',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -80,6 +81,7 @@ export const ProductScalarFieldEnum = {
     description: 'description',
     price: 'price',
     stock: 'stock',
+    image: 'image',
     categoryId: 'categoryId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',

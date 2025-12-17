@@ -53,11 +53,12 @@ export declare const OrderItemScalarFieldEnum: {
     readonly order_id: "order_id";
     readonly product_id: "product_id";
     readonly quantity: "quantity";
+    readonly priceAtTime: "priceAtTime";
 };
 export type OrderItemScalarFieldEnum = (typeof OrderItemScalarFieldEnum)[keyof typeof OrderItemScalarFieldEnum];
 export declare const OrderScalarFieldEnum: {
     readonly id: "id";
-    readonly user_id: "user_id";
+    readonly userId: "userId";
     readonly total: "total";
     readonly createdAt: "createdAt";
     readonly updatedAt: "updatedAt";
@@ -69,6 +70,7 @@ export declare const ProductScalarFieldEnum: {
     readonly description: "description";
     readonly price: "price";
     readonly stock: "stock";
+    readonly image: "image";
     readonly categoryId: "categoryId";
     readonly createdAt: "createdAt";
     readonly updatedAt: "updatedAt";

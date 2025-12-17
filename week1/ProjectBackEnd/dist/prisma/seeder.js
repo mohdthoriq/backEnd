@@ -66,16 +66,18 @@ async function main() {
             total += itemTotal;
             return {
                 productId: product.id,
-                quantity
+                quantity,
+                priceAtTime: product.price
             };
         });
         const order = await prisma.order.create({
             data: {
-                user_id: user.id,
+                userId: user.id,
                 total,
                 items: {
                     create: orderItemsData.map(item => ({
                         quantity: item.quantity,
+                        priceAtTime: item.priceAtTime,
                         product: {
                             connect: {
                                 id: item.productId

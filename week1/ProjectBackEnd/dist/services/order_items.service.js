@@ -40,11 +40,22 @@ export const searchItems = async (orderId, productId, minQty, maxQty) => {
     });
 };
 export const createItem = async (data) => {
+    const order = await prisma.order.findUnique({
+        where: { id: data.orderId }
+    });
+    if (!order)
+        throw new Error("Order tidak ditemukan");
+    const product = await prisma.product.findUnique({
+        where: { id: data.productId }
+    });
+    if (!product)
+        throw new Error("Product tidak ditemukan");
     return await prisma.orderItem.create({
         data: {
             order_id: data.orderId,
             product_id: data.productId,
-            quantity: data.quantity
+            quantity: data.quantity,
+            priceAtTime: product.price,
         },
         include: {
             order: true,
