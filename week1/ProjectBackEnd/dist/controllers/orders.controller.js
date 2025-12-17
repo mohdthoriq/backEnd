@@ -1,9 +1,12 @@
 import * as order from "../services/orders.service";
 import { successResponse } from "../utils/response";
 export const checkout = async (req, res) => {
-    const data = req.body;
-    const result = await order.checkoutOrder(data);
-    successResponse(res, 'order checkout successfully', result, null, 201);
+    if (!req.user) {
+        throw new Error("Unauthorized");
+    }
+    const { items } = req.body;
+    const result = await order.checkoutOrder(req.user.id, items);
+    successResponse(res, "Order checkout successfully", result, null, 201);
 };
 export const checkoutById = async (req, res) => {
     const id = parseInt(req.params.id);
@@ -33,12 +36,15 @@ export const search = async (req, res) => {
     successResponse(res, "Success", data);
 };
 export const create = async (req, res) => {
-    const { userId, items } = req.body;
-    if (isNaN(userId || !userId)) {
-        throw new Error("User ID tidak valid");
+    if (!req.user) {
+        throw new Error("Unauthorized");
     }
-    const data = await order.createOrder(userId, items);
-    successResponse(res, 'Order created successfully', data);
+    const { items } = req.body;
+    const data = await order.createOrder({
+        userId: req.user.id,
+        items,
+    });
+    successResponse(res, "Order created successfully", data);
 };
 export const update = async (req, res) => {
     const { id } = req.params;

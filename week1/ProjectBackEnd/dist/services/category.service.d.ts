@@ -6,6 +6,7 @@ export declare const getAllCategories: () => Promise<({
         description: string | null;
         price: import("@prisma/client-runtime-utils").Decimal;
         stock: number;
+        image: string;
         categoryId: number | null;
         createdAt: Date;
         updatedAt: Date;
@@ -32,6 +33,7 @@ export declare const searchCategories: (name?: string) => Promise<({
         description: string | null;
         price: import("@prisma/client-runtime-utils").Decimal;
         stock: number;
+        image: string;
         categoryId: number | null;
         createdAt: Date;
         updatedAt: Date;

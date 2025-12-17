@@ -1,0 +1,9 @@
+model Profile {
+  id                 Int     @id @default(autoincrement())
+  name               String
+  gender             String
+  address            String
+  profile_picture_url String?
+  userId             Int     @unique
+  user               User    @relation(fields: [userId], references: [id])
+}

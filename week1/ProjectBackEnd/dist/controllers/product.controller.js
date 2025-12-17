@@ -20,13 +20,18 @@ export const search = async (req, res) => {
     successResponse(res, "Hasil pencarian ditemukan", result);
 };
 export const create = async (req, res) => {
+    const file = req.file;
+    if (!file)
+        throw new Error("image is required");
     const { name, description, price, stock, categoryId } = req.body;
+    const imageURL = `/public/uploads/${file.filename}`;
     const data = {
         name: String(name),
         price: Number(price),
         stock: Number(stock),
         categoryId: Number(categoryId),
-        ...(description && { description: String(description) })
+        ...(description && { description: String(description) }),
+        image: imageURL
     };
     const newProduct = await createProduct(data);
     successResponse(res, "product berhasil ditambahkan", newProduct, null, 201);

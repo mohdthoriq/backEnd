@@ -8,6 +8,7 @@ export declare const searchItems: (orderId?: number, productId?: number, minQty?
         description: string | null;
         price: import("@prisma/client-runtime-utils").Decimal;
         stock: number;
+        image: string;
         categoryId: number | null;
         createdAt: Date;
         updatedAt: Date;
@@ -18,13 +19,14 @@ export declare const searchItems: (orderId?: number, productId?: number, minQty?
         createdAt: Date;
         updatedAt: Date;
         total: import("@prisma/client-runtime-utils").Decimal;
-        user_id: number;
+        userId: number;
     };
 } & {
     id: number;
-    order_id: number;
+    quantity: number;
+    priceAtTime: import("@prisma/client-runtime-utils").Decimal;
     product_id: number;
-    quantity: import("@prisma/client-runtime-utils").Decimal;
+    order_id: number;
 })[]>;
 export declare const createItem: (data: {
     orderId: number;

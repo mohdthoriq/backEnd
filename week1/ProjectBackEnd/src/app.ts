@@ -9,12 +9,14 @@ import userRouter from "./routes/user.router";
 import categoryRouter from "./routes/category.routes";
 import orderRouter from "./routes/orders.routes";
 import orderItemRouter from "./routes/order_items.routes";
+import profileRouter from "./routes/profile.routes";
 import { requestLogger } from "./middlewares/logging.middleware";
 import { authenticate } from "./middlewares/auth.middlleware";
 
 const app: Application = express()
 
 app.use(express.json())
+app.use(express.static('public'))
 app.use(morgan('dev')) // Middleware logging HTTP request
 // `morgan('dev')`: Middleware logging HTTP request. Format 'dev' memberikan output yang ringkas dan berwarna,
 //                 sangat berguna saat pengembangan untuk melihat request yang masuk dan status responsnya.
@@ -44,6 +46,7 @@ app.use('/api/products', productRouter)
 app.use('/api/categories',  categoryRouter)
 app.use('/api/orders', authenticate, orderRouter)
 app.use('/api/order-items', orderItemRouter);
+app.use('/api/profile', profileRouter)
 
 app.get(/.*/, (req: Request, res: Response) => {
     throw new Error(`Route ${req.originalUrl} tidak ada di API E-Commerce`);

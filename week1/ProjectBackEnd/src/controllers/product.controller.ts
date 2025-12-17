@@ -41,13 +41,20 @@ export const search = async(req: Request, res: Response) => {
 }
 
 export const create = async(req: Request, res: Response) => {
+    const file = req.file
+    if (!file) throw new Error("image is required");
+
     const { name, description, price, stock, categoryId } = req.body;
+
+    const imageURL = `/public/uploads/${file.filename}`
+
     const data = {
        name: String(name),
        price: Number(price),
        stock: Number(stock),
        categoryId: Number(categoryId),
-       ...(description && { description: String(description) })
+       ...(description && { description: String(description) }),
+       image: imageURL
     };
 
     const newProduct = await createProduct(data);

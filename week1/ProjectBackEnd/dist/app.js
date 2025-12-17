@@ -9,7 +9,6 @@ import userRouter from "./routes/user.router";
 import categoryRouter from "./routes/category.routes";
 import orderRouter from "./routes/orders.routes";
 import orderItemRouter from "./routes/order_items.routes";
-import { apiKeyValidate } from "./middlewares/api.key";
 import { requestLogger } from "./middlewares/logging.middleware";
 import { authenticate } from "./middlewares/auth.middlleware";
 const app = express();
@@ -25,7 +24,6 @@ app.use(cors()); // Middleware biar bisa di akses dari frontend
 //           Sangat penting untuk API yang akan diakses oleh frontend dari domain berbeda.
 app.use(requestLogger);
 app.use('/auth', userRouter);
-app.use(apiKeyValidate);
 app.get('/', (_req, res) => {
     successResponse(res, "Selamat datang di API E-Commerce!", {
         hari: 3,
