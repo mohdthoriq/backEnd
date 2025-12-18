@@ -3,9 +3,33 @@ import * as items from '../services/order_items.service';
 import { successResponse } from '../utils/response';
 
 export const getAll = async (req: Request, res: Response) => {
-    const data = await items.getAllItems()
+  const page = Number(req.query.page) || 1
+  const limit = Number(req.query.limit) || 10
+  const search = req.query.search as any
+  const sortBy = req.query.sortBy as string
+  const sortOrder = req.query.sortOrder as "asc" | "desc"
 
-    successResponse(res, 'Success', data);
+  const result = await items.getAllOrderItems({
+    page,
+    limit,
+    search,
+    sortBy,
+    sortOrder,
+  })
+
+  const pagination = {
+    page: result.currentPage,
+    limit,
+    total: result.total,
+    totalPages: result.totalPages,
+  }
+
+  successResponse(
+    res,
+    "Daftar Order Items ditemukan",
+    result,
+    pagination
+  )
 }
 
 export const getById = async (req: Request, res: Response) => {
@@ -18,23 +42,6 @@ export const getById = async (req: Request, res: Response) => {
 
     successResponse(res, 'Success', data);
 }
-
-export const search = async (req: Request, res: Response) => {
-    const orderId = req.query.orderId ? Number(req.query.orderId) : undefined;
-    const productId = req.query.productId ? Number(req.query.productId) : undefined;
-    const minQty = req.query.minQty ? Number(req.query.minQty) : undefined;
-    const maxQty = req.query.maxQty ? Number(req.query.maxQty) : undefined;
-
-    const data = await items.searchItems(
-        orderId,
-        productId,
-        minQty,
-        maxQty
-    );
-
-    successResponse(res, 'Success', data);
-};
-
 
 export const create = async (req: Request, res: Response) => {
   const { orderId, productId, quantity } = req.body;
@@ -60,7 +67,6 @@ export const create = async (req: Request, res: Response) => {
 
   successResponse(res, "Order item created successfully", data);
 };
-
 
 export const update = async (req: Request, res: Response) => {
     const id = parseInt(req.params.id!);

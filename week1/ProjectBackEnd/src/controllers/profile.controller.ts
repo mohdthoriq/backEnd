@@ -1,9 +1,6 @@
 import type { Request, Response } from "express";
-import { getPrisma } from "../prisma";
 import { createProfile, deleteProfile, getProfileById, updateProfile } from "../services/profile.service";
 import { successResponse } from "../utils/response";
-
-const prisma = getPrisma()
 
 export const create = async (req: Request, res: Response) =>{
     const file = req.file

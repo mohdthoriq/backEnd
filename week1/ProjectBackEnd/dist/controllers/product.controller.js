@@ -1,11 +1,24 @@
 import { successResponse } from "../utils/response";
-import { createProduct, deleteProduct, getAllProducts, getProductById, searchProducts, updateProduct } from "../services/product.service";
-export const getAll = async (_req, res) => {
-    const { products, total } = await getAllProducts();
-    successResponse(res, "Daftar Product ditemukan", {
-        jumlah: total,
-        data: products
+import { createProduct, deleteProduct, getAllProducts, getProductById, updateProduct } from "../services/product.service";
+export const getAll = async (req, res) => {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const search = req.query.search;
+    const sortBy = req.query.sortBy;
+    const sortOrder = req.query.sortOrder;
+    const result = await getAllProducts({
+        page,
+        limit,
+        search,
+        sortBy,
+        sortOrder
     });
+    const pagination = {
+        page: result.currentPage,
+        limit,
+        total: result.total
+    };
+    successResponse(res, "Daftar Product ditemukan", result, pagination);
 };
 export const getById = async (req, res) => {
     if (!req.params.id) {
@@ -14,11 +27,15 @@ export const getById = async (req, res) => {
     const product = await getProductById(req.params.id);
     successResponse(res, "Product ditemukan", product);
 };
-export const search = async (req, res) => {
-    const { name, max_price, min_price } = req.query;
-    const result = await searchProducts(name?.toString(), Number(max_price), Number(min_price));
-    successResponse(res, "Hasil pencarian ditemukan", result);
-};
+// export const search = async(req: Request, res: Response) => {
+//     const { name, max_price, min_price } = req.query;
+//     const result = await searchProducts(name?.toString(), Number(max_price), Number(min_price));
+//     successResponse(
+//         res,
+//         "Hasil pencarian ditemukan",
+//         result,
+//     )
+// }
 export const create = async (req, res) => {
     const file = req.file;
     if (!file)

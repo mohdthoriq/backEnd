@@ -72,6 +72,7 @@ export const ModelName = {
     OrderItem: 'OrderItem',
     Order: 'Order',
     Product: 'Product',
+    Profile: 'Profile',
     User: 'User'
 };
 /**
@@ -115,6 +116,14 @@ export const ProductScalarFieldEnum = {
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     deletedAt: 'deletedAt'
+};
+export const ProfileScalarFieldEnum = {
+    id: 'id',
+    name: 'name',
+    gender: 'gender',
+    address: 'address',
+    profile_picture_url: 'profile_picture_url',
+    userId: 'userId'
 };
 export const UserScalarFieldEnum = {
     id: 'id',

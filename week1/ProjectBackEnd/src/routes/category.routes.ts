@@ -9,8 +9,6 @@ router.get('/', category.getAll)
 
 router.get('/:id', validate(getCategoryByIdValidation), category.getById);
 
-router.get('/search',category.search);
-
 router.post('/',validate(createCategoryValidation), category.create)
 
 router.put('/:id',category.update);

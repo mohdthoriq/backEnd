@@ -156,6 +156,17 @@ export interface PrismaClient<in LogOpts extends Prisma.LogLevel = never, in out
         omit: OmitOpts;
     }>;
     /**
+     * `prisma.profile`: Exposes CRUD operations for the **Profile** model.
+      * Example usage:
+      * ```ts
+      * // Fetch zero or more Profiles
+      * const profiles = await prisma.profile.findMany()
+      * ```
+      */
+    get profile(): Prisma.ProfileDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    /**
      * `prisma.user`: Exposes CRUD operations for the **User** model.
       * Example usage:
       * ```ts

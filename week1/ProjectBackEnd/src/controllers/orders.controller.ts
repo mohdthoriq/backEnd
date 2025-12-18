@@ -15,7 +15,6 @@ export const checkout = async (req: Request, res: Response) => {
   successResponse(res, "Order checkout successfully", result, null, 201);
 };
 
-
 export const checkoutById = async (req: Request, res: Response) => {
     const id = parseInt(req.params.id!);
     if (isNaN(id)) {
@@ -27,11 +26,36 @@ export const checkoutById = async (req: Request, res: Response) => {
     successResponse(res, 'Success', data);
 }
 
-export const getAll = async(req: Request, res: Response) => {
-    const data = await order.getAllOrders();
+export const getAll = async (req: Request, res: Response) => {
+  const page = Number(req.query.page) || 1
+  const limit = Number(req.query.limit) || 10
+  const search = req.query.search as any
+  const sortBy = req.query.sortBy as string
+  const sortOrder = req.query.sortOrder as "asc" | "desc"
 
-    successResponse(res, 'Success', data);
+  const result = await order.getAllOrders({
+    page,
+    limit,
+    search,
+    sortBy,
+    sortOrder,
+  })
+
+  const pagination = {
+    page: result.currentPage,
+    limit,
+    total: result.total,
+    totalPages: result.totalPages,
+  }
+
+  successResponse(
+    res,
+    "Daftar Order ditemukan",
+    result,
+    pagination
+  )
 }
+
 
 export const getById = async(req: Request, res: Response) => {
     const id = parseInt(req.params.id!);
@@ -43,16 +67,6 @@ export const getById = async(req: Request, res: Response) => {
 
     successResponse(res, 'Success', data);
 }
-
-export const search = async (req: Request, res: Response) => {
-    const userId = req.query.userId ? Number(req.query.userId) : undefined;
-    const minTotal = req.query.minTotal ? Number(req.query.minTotal) : undefined;
-    const maxTotal = req.query.maxTotal ? Number(req.query.maxTotal) : undefined;
-
-    const data = await order.searchOrders(userId, maxTotal, minTotal);
-
-    successResponse(res, "Success", data);
-};
 
 export const create = async(req: Request, res: Response) => {
    if (!req.user) {

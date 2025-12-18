@@ -7,7 +7,6 @@ const router = Router();
 
 router.get('/', item.getAll);
 router.get('/:id', validate(getOrderItemByIdValidation), item.getById);
-router.get('/search', item.search);
 router.post('/', validate(createOrderItemValidation), item.create);
 router.put('/:id', item.update);
 router.delete('/:id', item.remove);

@@ -90,7 +90,6 @@ export const checkoutOrder = async (
     });
 };
 
-
 export const getCheckoutById = async (id: number) => {
     return await prisma.order.findUnique({
         where: {
@@ -111,17 +110,70 @@ export const getCheckoutById = async (id: number) => {
     })
 }
 
-export const getAllOrders = async (): Promise<Order[]> => {
-    return await prisma.order.findMany({
-        include: {
-            items: {
-                include: {
-                    product: true
-                }
-            }
-        }
-    })
+interface FindAllOrderParams {
+  page: number
+  limit: number
+  search?: {
+    userId?: number
+    status?: string
+  }
+  sortBy?: string
+  sortOrder?: "asc" | "desc"
 }
+
+interface OrderListResponse {
+  orders: Order[]
+  total: number
+  totalPages: number
+  currentPage: number
+}
+
+
+export const getAllOrders = async (
+  params: FindAllOrderParams
+): Promise<OrderListResponse> => {
+  const { page, limit, search, sortBy, sortOrder } = params
+
+  const skip = (page - 1) * limit
+
+  const whereClause: any = {}
+
+  if (search?.userId) {
+    whereClause.userId = search.userId
+  }
+
+  if (search?.status) {
+    whereClause.status = search.status
+  }
+
+  const orders = await prisma.order.findMany({
+    skip,
+    take: limit,
+    where: whereClause,
+    orderBy: sortBy
+      ? { [sortBy]: sortOrder || "desc" }
+      : { createdAt: "desc" },
+    include: {
+      items: {
+        include: {
+          product: true,
+        },
+      },
+    },
+  })
+
+  const total = await prisma.order.count({
+    where: whereClause,
+  })
+
+  return {
+    orders,
+    total,
+    totalPages: Math.ceil(total / limit),
+    currentPage: page,
+  }
+}
+
 
 export const getOrderById = async (id: number): Promise<Order> => {
     const data = await prisma.order.findUnique({
@@ -141,30 +193,6 @@ export const getOrderById = async (id: number): Promise<Order> => {
         throw new Error("Order tidak ditemukan");
     }
     return data;
-}
-
-export const searchOrders = async (
-    userId?: number,
-    maxTotal?: number,
-    minTotal?: number
-) => {
-    return await prisma.order.findMany({
-        where: {
-            ...(userId !== undefined && { user_id: userId }),
-
-            total: {
-                ...(minTotal !== undefined && { gte: minTotal }),
-                ...(maxTotal !== undefined && { lte: maxTotal }),
-            },
-        },
-        include: {
-            items: {
-                include: {
-                    product: true
-                }
-            },
-        }
-    });
 }
 
 export const createOrder = async (data: { userId: number, items: { productId: number, quantity: number, priceAtTime: number }[] }) => {

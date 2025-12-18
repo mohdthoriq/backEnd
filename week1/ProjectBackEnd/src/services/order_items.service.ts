@@ -1,16 +1,64 @@
 import { getPrisma } from "../prisma"
-import type { OrderItem } from "../src/generated/prisma/client";
+import type { OrderItem } from "../src/generated/prisma/client"
+import type { FindAllParams } from "./product.service"
 
-const prisma = getPrisma();
+const prisma = getPrisma()
 
-export const getAllItems = async (): Promise<OrderItem[]> => {
-    return await prisma.orderItem.findMany({
-        include: {
-            order: true,
-            product: true
-        }
-    })
+interface OrderItemListResponse {
+  items: OrderItem[]
+  total: number
+  totalPages: number
+  currentPage: number
 }
+
+export const getAllOrderItems = async (
+  params: FindAllParams
+): Promise<OrderItemListResponse> => {
+  const { page, limit, search, sortBy, sortOrder } = params
+
+  const skip = (page - 1) * limit
+
+  const whereClause: any = {}
+
+  // search by product name
+  if (search?.name) {
+    whereClause.product = {
+      name: {
+        contains: search.name,
+        mode: "insensitive",
+      },
+    }
+  }
+
+  const items = await prisma.orderItem.findMany({
+    skip,
+    take: limit,
+    where: whereClause,
+    orderBy: sortBy
+  ? { [sortBy]: sortOrder || "desc" }
+  : {
+      order: {
+        createdAt: "desc",
+      },
+    },
+    include: {
+      order: true,
+      product: true,
+    },
+  })
+
+  const total = await prisma.orderItem.count({
+    where: whereClause,
+  })
+
+  return {
+    items,
+    total,
+    totalPages: Math.ceil(total / limit),
+    currentPage: page,
+  }
+}
+
 
 export const getItemById = async (id: number): Promise<OrderItem> => {
     const item = await prisma.orderItem.findUnique({
@@ -28,29 +76,6 @@ export const getItemById = async (id: number): Promise<OrderItem> => {
     }
     return item;
 }
-
-export const searchItems = async (
-    orderId?: number,
-    productId?: number,
-    minQty?: number,
-    maxQty?: number
-) => {
-    return await prisma.orderItem.findMany({
-        where: {
-            ...(orderId !== undefined && { order_id: orderId }),
-            ...(productId !== undefined && { product_id: productId }),
-
-            quantity: {
-                ...(minQty !== undefined && { gte: minQty }),
-                ...(maxQty !== undefined && { lte: maxQty })
-            }
-        },
-        include: {
-            order: true,
-            product: true
-        }
-    });
-};
 
 export const createItem = async (data: { orderId: number, productId: number, quantity: number }): Promise<OrderItem> => {
     const order = await prisma.order.findUnique({

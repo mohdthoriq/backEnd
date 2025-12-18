@@ -1,16 +1,34 @@
 import type { Request, Response } from "express"
 import { successResponse } from "../utils/response"
-import { createProduct, deleteProduct, getAllProducts, getProductById, searchProducts, updateProduct } from "../services/product.service"
+import { createProduct, deleteProduct, getAllProducts, getProductById, updateProduct } from "../services/product.service"
 
-export const getAll = async(_req: Request, res: Response) => {
-    const { products, total } = await getAllProducts()
+export const getAll = async(req: Request, res: Response) => {
+    const page = Number(req.query.page) || 1
+    const limit = Number(req.query.limit) || 10
+    const search = req.query.search as any
+    const sortBy = req.query.sortBy as string
+    const sortOrder = req.query.sortOrder as "asc" | "desc"
+
+    const result = await getAllProducts({
+            page,
+            limit,
+            search,
+            sortBy,
+            sortOrder
+    })
+
+    const pagination = {
+        page: result.currentPage,
+        limit,
+        total: result.total,
+        totalPages: result.totalPages
+    }
+
     successResponse(
         res,
         "Daftar Product ditemukan",
-        {
-            jumlah: total,
-            data: products
-        }
+       result,
+       pagination
     )
 }
 
@@ -25,18 +43,6 @@ export const getById = async(req: Request, res: Response) => {
         res,
         "Product ditemukan",
         product,
-    )
-}
-
-export const search = async(req: Request, res: Response) => {
-    const { name, max_price, min_price } = req.query;
-
-    const result = await searchProducts(name?.toString(), Number(max_price), Number(min_price));
-
-    successResponse(
-        res,
-        "Hasil pencarian ditemukan",
-        result,
     )
 }
 
