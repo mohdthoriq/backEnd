@@ -1,9 +1,6 @@
-import e from "express";
-import { getPrisma } from "../prisma";
-import type { Category } from "../src/generated/prisma/client";
+import type { Category, Prisma } from "../src/generated/prisma/client";
 import type { FindAllParams } from "./product.service";
-
-const prisma = getPrisma()
+import * as categoryRepo from "../repository/category.repository";
 
 interface FindAllCategoryParams extends FindAllParams {
   search?: {
@@ -25,7 +22,7 @@ export const getAllCategories = async (
 
   const skip = (page - 1) * limit
 
-  const whereClause: any = {
+  const whereClause: Prisma.CategoryWhereInput = {
     deletedAt: null,
   }
 
@@ -36,19 +33,14 @@ export const getAllCategories = async (
     }
   }
 
-  const categories = await prisma.category.findMany({
-    skip,
-    take: limit,
-    where: whereClause,
-    orderBy: sortBy ? { [sortBy]: sortOrder || "desc" } : { createdAt: "desc" },
-    include: {
-      products: true,
-    },
-  })
+  const sortCriteria: any = sortBy
+    ? { [sortBy]: sortOrder || "desc" }
+    : { createdAt: "desc" }
 
-  const total = await prisma.category.count({
-    where: whereClause,
-  })
+
+  const categories = await categoryRepo.list(skip, limit, whereClause, sortCriteria)
+
+  const total = await categoryRepo.countAll(whereClause)
 
   return {
     categories,
@@ -61,21 +53,20 @@ export const getAllCategories = async (
 export const getCategoryById = async (id: string) => {
     const numId = parseInt(id)
 
-    return await prisma.category.findUnique({
-        where: { id: numId, deletedAt: null },
-    });
+    return await categoryRepo.findById(numId)
 }
 
 export const createCategory = async (name: string) => {
-    const isExists = await prisma.category.findUnique({ where: { name } })
+    const isExists = await categoryRepo.findByName(name);
+
 
     if (isExists) {
         throw new Error('Category with this name already exists');
     }
 
-    return await prisma.category.create({
-        data: { name },
-    });
+    return await categoryRepo.create({
+        name
+    })
 
 }
 
@@ -84,21 +75,10 @@ export const updateCategories = async (id: string, data: Partial<Category>): Pro
 
     const numId = parseInt(id);
 
-    return await prisma.category.update({
-        where: {
-            id: numId,
-            deletedAt: null
-        },
-        data
-    })
+    return await categoryRepo.update(numId, data)
 }
 
 export const deleteCategory = async (id: string): Promise<Category> => {
     const numId = parseInt(id);
-    return await prisma.category.delete({
-        where: {
-            id: numId,
-            deletedAt: null
-        }
-    })
+    return await categoryRepo.softDelete(numId)
 }

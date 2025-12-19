@@ -1,5 +1,6 @@
 import { getPrisma } from "../prisma";
 import type { Profile } from "../src/generated/prisma/client";
+import * as profileRepo from "../repository/profile.repository";
 
 const prisma = getPrisma()
 
@@ -10,43 +11,29 @@ export const createProfile = async (data: {
     profile_picture_url?: string;
     userId: number;
 }): Promise<Profile> => {
-    const exist = await prisma.profile.findUnique({
-        where: {
-            userId: data.userId
-        }
-    })
+    const exist = await profileRepo.findByUserId(data.userId)
     if (exist) throw new Error("Profile sudah ada")
 
-    return await prisma.profile.create({
-        data
-    })
+    return profileRepo.create(data)
 }
 
 export const getProfileById = async (id: number) => {
-    return await prisma.profile.findUnique({
+    const profile = await prisma.profile.findUnique({
         where: {
             id
-        },
-        include: {
-            user: true
         }
     })
 
+    if (!profile) throw new Error("Profile tidak ditemukan")
+
+    return profile
 }
 
 export const updateProfile = async (id: number, data: Partial<Profile>) => {
-    return await prisma.profile.update({
-        where: {
-            id
-        },
-        data
-    })
+    return profileRepo.update(id, data)
 }
 
 export const deleteProfile = async (id: number) => {
-    return await prisma.profile.delete({
-        where: {
-            id
-        }
-    })
+   await getProfileById(id)
+   return profileRepo.remove(id)
 }

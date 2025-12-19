@@ -1,5 +1,8 @@
 import { getPrisma } from "../prisma"
 import type { Order } from "../src/generated/prisma/client";
+import * as orderRepo from "../repository/orders.repository";
+import * as productRepo from "../repository/product.repository";
+
 
 const prisma = getPrisma();
 
@@ -18,180 +21,121 @@ export const checkoutOrder = async (
     userId: number,
     items: { productId: number; quantity: number }[]
 ) => {
-    if (!items || items.length === 0) {
-        throw new Error("Items tidak boleh kosong");
+    if (!items.length) {
+        throw new Error("Items tidak boleh kosong")
     }
 
-    return await prisma.$transaction(async (tx) => {
-        let total = 0;
+    return prisma.$transaction(async (tx) => {
+        let total = 0
 
-        const orderItemsData = [];
+        const orderItemsData: {
+            productId: number
+            quantity: number
+            priceAtTime: number
+        }[] = []
 
-        // 1️⃣ ambil data product asli + hitung total
         for (const item of items) {
             const product = await tx.product.findUnique({
                 where: { id: item.productId }
-            });
+            })
 
             if (!product) {
-                throw new Error(`Product ID ${item.productId} not found`);
+                throw new Error(`Product ID ${item.productId} not found`)
             }
 
             if (product.stock < item.quantity) {
-                throw new Error(`Stock product ${product.name} tidak cukup`);
+                throw new Error(`Stock product ${product.name} tidak cukup`)
             }
 
-            const price = Number(product.price);
-            total += price * item.quantity;
-
+            const price = Number(product.price)
+            total += price * item.quantity
 
             orderItemsData.push({
+                productId: product.id,
                 quantity: item.quantity,
-                priceAtTime: product.price,
-                product: {
-                    connect: { id: item.productId }
-                }
-            });
+                priceAtTime: price
+            })
 
             await tx.product.update({
                 where: { id: product.id },
-                data: {
-                    stock: { decrement: item.quantity }
-                }
-            });
+                data: { stock: { decrement: item.quantity } }
+            })
         }
 
-        const order = await tx.order.create({
-            data: {
-                total,
-                user: {
-                    connect: { id: userId }
-                },
-                items: {
-                    create: orderItemsData
-                }
-            },
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        username: true
-                    }
-                },
-                items: {
-                    include: {
-                        product: true
-                    }
-                }
-            }
-        });
-
-        return order;
-    });
-};
+        return orderRepo.checkout(
+            userId,
+            orderItemsData,
+            total,
+            tx
+        )
+    })
+}
 
 export const getCheckoutById = async (id: number) => {
-    return await prisma.order.findUnique({
-        where: {
-            id
-        },
-        include: {
-            user: {
-                select: {
-                    username: true,
-                }
-            },
-            items: {
-                include: {
-                    product: true
-                }
-            }
-        }
-    })
+    if (!id || isNaN(id)) throw new Error("Invalid order ID")
+
+    const order = await orderRepo.findById(id)
+
+    if (!order) {
+        throw new Error("Order tidak ditemukan")
+    }
+
+    return order
 }
 
 interface FindAllOrderParams {
-  page: number
-  limit: number
-  search?: {
-    userId?: number
-    status?: string
-  }
-  sortBy?: string
-  sortOrder?: "asc" | "desc"
+    page: number
+    limit: number
+    search?: {
+        userId?: number
+        status?: string
+    }
+    sortBy?: string
+    sortOrder?: "asc" | "desc"
 }
 
 interface OrderListResponse {
-  orders: Order[]
-  total: number
-  totalPages: number
-  currentPage: number
+    orders: Order[]
+    total: number
+    totalPages: number
+    currentPage: number
 }
-
 
 export const getAllOrders = async (
-  params: FindAllOrderParams
+    params: FindAllOrderParams
 ): Promise<OrderListResponse> => {
-  const { page, limit, search, sortBy, sortOrder } = params
 
-  const skip = (page - 1) * limit
+    const { page, limit } = params
 
-  const whereClause: any = {}
+    if (!page || page < 1) {
+        throw new Error("Page tidak valid")
+    }
 
-  if (search?.userId) {
-    whereClause.userId = search.userId
-  }
+    if (!limit || limit < 1) {
+        throw new Error("Limit tidak valid")
+    }
 
-  if (search?.status) {
-    whereClause.status = search.status
-  }
+    const { orders, total } = await orderRepo.findAll(params)
 
-  const orders = await prisma.order.findMany({
-    skip,
-    take: limit,
-    where: whereClause,
-    orderBy: sortBy
-      ? { [sortBy]: sortOrder || "desc" }
-      : { createdAt: "desc" },
-    include: {
-      items: {
-        include: {
-          product: true,
-        },
-      },
-    },
-  })
-
-  const total = await prisma.order.count({
-    where: whereClause,
-  })
-
-  return {
-    orders,
-    total,
-    totalPages: Math.ceil(total / limit),
-    currentPage: page,
-  }
+    return {
+        orders,
+        total,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page
+    }
 }
 
-
 export const getOrderById = async (id: number): Promise<Order> => {
-    const data = await prisma.order.findUnique({
-        where: {
-            id
-        },
-        include: {
-            items: {
-                include: {
-                    product: true
-                }
-            }
-        }
-    })
+    if (!id || isNaN(id)) {
+        throw new Error("Invalid order ID");
+    }
+
+    const data = await orderRepo.findById(id);
 
     if (!data) {
         throw new Error("Order tidak ditemukan");
     }
+
     return data;
 }
 
@@ -246,64 +190,51 @@ export const createOrder = async (data: { userId: number, items: { productId: nu
     })
 }
 
-export const updateOrder = async (id: number, items: { productId: number, quantity: number, priceAtTime: number }[]) => {
-    await getOrderById(id);
+export const updateOrder = async (
+    id: number,
+    items: { productId: number; quantity: number }[]
+) => {
+    if (!items.length) {
+        throw new Error("Items tidak boleh kosong")
+    }
 
-    await prisma.orderItem.deleteMany({
-        where: {
-            order_id: id
-        }
-    })
+    let total = 0
+    const orderItems = []
 
-    const total = await Promise.all(items.map(async (item) => {
+    for (const item of items) {
         const product = await prisma.product.findUnique({
-            where: {
-                id: item.productId
-            }
+            where: { id: item.productId }
         })
+
         if (!product) {
-            throw new Error(`Product dengan ID ${item.productId} tidak ditemukan`);
+            throw new Error(`Product ID ${item.productId} tidak ditemukan`)
         }
-        return Number(product.price) * Number(item.quantity)
 
-    })).then(prices => prices.reduce((a, b) => a + b, 0));
-
-    return await prisma.order.update({
-        where: {
-            id: id
-        },
-        data: {
-            total,
-            items: {
-                create: items.map((item) => ({
-                    product_id: item.productId,
-                    quantity: item.quantity,
-                    priceAtTime: item.priceAtTime
-                }))
-            }
-        },
-        include: {
-            items: {
-                include: {
-                    product: true
-                }
-            }
+        if (product.stock < item.quantity) {
+            throw new Error(`Stock ${product.name} tidak cukup`)
         }
-    })
+
+        total += Number(product.price) * item.quantity
+
+        orderItems.push({
+            productId: product.id,
+            quantity: item.quantity,
+            priceAtTime: product.price
+        })
+    }
+
+    return orderRepo.update(id, total, orderItems)
 }
 
-export const deleteOrder = async (id: number): Promise<Order> => {
-    await getOrderById(id);
+export const deleteOrder = async (id: number) => {
+    if (!id || isNaN(id)) {
+        throw new Error("ID order tidak valid")
+    }
 
-    await prisma.orderItem.deleteMany({
-        where: {
-            order_id: id
-        }
-    });
+    const order = await orderRepo.findById(id)
+    if (!order) {
+        throw new Error("Order tidak ditemukan")
+    }
 
-    return await prisma.order.delete({
-        where: {
-            id
-        }
-    });
+    return orderRepo.remove(id)
 }
