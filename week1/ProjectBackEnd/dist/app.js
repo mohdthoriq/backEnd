@@ -15,6 +15,7 @@ import { authenticate } from "./middlewares/auth.middlleware";
 const app = express();
 app.use(express.json());
 app.use(express.static('public'));
+app.set('query parser', 'extended');
 app.use(morgan('dev')); // Middleware logging HTTP request
 // `morgan('dev')`: Middleware logging HTTP request. Format 'dev' memberikan output yang ringkas dan berwarna,
 //                 sangat berguna saat pengembangan untuk melihat request yang masuk dan status responsnya.

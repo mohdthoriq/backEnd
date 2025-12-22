@@ -1,65 +1,53 @@
-import e from "express";
-import { getPrisma } from "../prisma";
-const prisma = getPrisma();
-export const getAllCategories = async () => {
-    return await prisma.category.findMany({
-        where: {
-            deletedAt: null
-        },
-        include: {
-            products: true
-        }
-    });
-};
-export const getCategoryById = async (id) => {
-    const numId = parseInt(id);
-    return await prisma.category.findUnique({
-        where: { id: numId, deletedAt: null },
-    });
-};
-export const searchCategories = async (name) => {
-    return await prisma.category.findMany({
-        where: {
-            ...(name && {
-                name: {
-                    contains: name,
-                    mode: "insensitive"
-                }
-            }),
-            deletedAt: null
-        },
-        include: {
-            products: true
-        }
-    });
-};
-export const createCategory = async (name) => {
-    const isExists = await prisma.category.findUnique({ where: { name } });
-    if (isExists) {
-        throw new Error('Category with this name already exists');
+export class CategoryService {
+    categoryRepo;
+    constructor(categoryRepo) {
+        this.categoryRepo = categoryRepo;
     }
-    return await prisma.category.create({
-        data: { name },
-    });
-};
-export const updateCategories = async (id, data) => {
-    await getCategoryById(id);
-    const numId = parseInt(id);
-    return await prisma.category.update({
-        where: {
-            id: numId,
+    async list(params) {
+        const { page, limit, search, sortBy, sortOrder } = params;
+        const skip = (page - 1) * limit;
+        const whereClause = {
             deletedAt: null
-        },
-        data
-    });
-};
-export const deleteCategory = async (id) => {
-    const numId = parseInt(id);
-    return await prisma.category.delete({
-        where: {
-            id: numId,
-            deletedAt: null
+        };
+        if (search?.name) {
+            whereClause.name = {
+                contains: search.name,
+                mode: "insensitive"
+            };
         }
-    });
-};
+        const sortCriteria = sortBy
+            ? { [sortBy]: sortOrder || "desc" }
+            : { createdAt: "desc" };
+        const categories = await this.categoryRepo.list(skip, limit, whereClause, sortCriteria);
+        const total = await this.categoryRepo.countAll(whereClause);
+        return {
+            categories,
+            total,
+            totalPages: Math.ceil(total / limit),
+            currentPage: page
+        };
+    }
+    async getById(id) {
+        const numId = Number(id);
+        const category = await this.categoryRepo.findById(numId);
+        if (!category) {
+            throw new Error("Category tidak ditemukan");
+        }
+        return category;
+    }
+    async create(name) {
+        const exists = await this.categoryRepo.findByName(name);
+        if (exists) {
+            throw new Error("Category dengan nama ini sudah ada");
+        }
+        return this.categoryRepo.create({ name });
+    }
+    async update(id, data) {
+        await this.getById(id);
+        return this.categoryRepo.update(Number(id), data);
+    }
+    async delete(id) {
+        return this.categoryRepo.softDelete(Number(id));
+    }
+}
 //# sourceMappingURL=category.service.js.map

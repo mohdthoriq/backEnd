@@ -1,19 +1,26 @@
 import { Router } from "express";
-import * as profile from '../controllers/profile.controller';
 import { validate } from "../utils/validator";
 import { createProfileValidation, updateProfileValidation } from "../validations/profile.validation";
 import { authenticate } from "../middlewares/auth.middlleware";
 import { upload } from "../middlewares/upload.middleware";
+import { ProfileRepository } from "../repository/profile.repository";
+import { PrismaInstance } from "../prisma";
+import { ProfileService } from "../services/profile.service";
+import { ProfileController } from "../controllers/profile.controller";
 
 
 const router = Router()
 
-router.get('/:id', profile.getById)
+const repo = new ProfileRepository(PrismaInstance)
+const service = new ProfileService(repo)
+const controller = new ProfileController(service)
 
-router.post('/',authenticate, upload.single('profile_picture_url'), validate(createProfileValidation), profile.create)
+router.get('/:id', controller.getById)
 
-router.put('/:id',validate(updateProfileValidation), profile.update)
+router.post('/',authenticate, upload.single('profile_picture_url'), validate(createProfileValidation), controller.create)
 
-router.delete('/:id', profile.remove)
+router.put('/:id',validate(updateProfileValidation), controller.update)
+
+router.delete('/:id', controller.remove)
 
 export default router;

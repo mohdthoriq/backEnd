@@ -1,7 +1,13 @@
 import { Router } from "express";
-import { login, register } from "../controllers/user.controller";
+import { UserRepository } from "../repository/user.repository";
+import { PrismaInstance } from "../prisma";
+import { UserService } from "../services/user.service";
+import { UserController } from "../controllers/user.controller";
 const router = Router();
-router.post('/register', register);
-router.post('/login', login);
+const repo = new UserRepository(PrismaInstance);
+const service = new UserService(repo);
+const controller = new UserController(service);
+router.post('/register', controller.register);
+router.post('/login', controller.login);
 export default router;
 //# sourceMappingURL=user.router.js.map

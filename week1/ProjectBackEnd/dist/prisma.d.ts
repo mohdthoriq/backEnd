@@ -1,3 +1,5 @@
 import { PrismaClient } from "./src/generated/prisma/client";
-export declare const getPrisma: () => PrismaClient;
+declare const getPrisma: () => PrismaClient;
+export declare const PrismaInstance: PrismaClient;
+export default getPrisma;
 //# sourceMappingURL=prisma.d.ts.map

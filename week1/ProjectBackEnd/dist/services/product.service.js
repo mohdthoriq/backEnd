@@ -1,103 +1,47 @@
-import { getPrisma } from "../prisma";
-const prisma = getPrisma();
-export const getAllProducts = async (params) => {
-    const { page, limit, search, sortBy, sortOrder } = params;
-    const skip = (page - 1) * limit;
-    const whereClause = {
-        deletedAt: null
-    };
-    if (search?.name) {
-        whereClause.name = { contains: search.name, mode: "insensitive" };
+export class ProductService {
+    productRepo;
+    constructor(productRepo) {
+        this.productRepo = productRepo;
     }
-    if (search?.min_price) {
-        whereClause.max_price = { lte: search.max_price };
-    }
-    if (search?.max_price) {
-        whereClause.min_price = { gte: search.min_price };
-    }
-    const products = await prisma.product.findMany({
-        skip: skip,
-        take: limit,
-        where: whereClause,
-        orderBy: sortBy ? { [sortBy]: sortOrder || 'desc' } : { createdAt: 'desc' },
-        include: {
-            category: true
-        }
-    });
-    const total = await prisma.product.count({
-        where: whereClause
-    });
-    return { products, total, totalPages: Math.ceil(total / limit), currentPage: page };
-};
-export const getProductById = async (id) => {
-    const numId = parseInt(id);
-    const product = await prisma.product.findUnique({
-        where: {
-            id: numId,
+    async list(params) {
+        const { page, limit, search, sortBy, sortOrder } = params;
+        const skip = (page - 1) * limit;
+        const whereClause = {
             deletedAt: null
-        },
-        include: {
-            category: true
+        };
+        if (search?.name) {
+            whereClause.name = { contains: search.name, mode: "insensitive" };
         }
-    });
-    if (!product) {
-        throw new Error("Product tidak ditemukan");
+        if (search?.min_price) {
+            whereClause.price = { gte: search.min_price };
+        }
+        if (search?.max_price) {
+            whereClause.price = { lte: search.max_price };
+        }
+        const sortCriteria = sortBy ? { [sortBy]: sortOrder || "desc" } : { createdAt: "desc" };
+        const products = await this.productRepo.list(skip, limit, whereClause, sortCriteria);
+        const total = await this.productRepo.countAll(whereClause);
+        return { products, total, totalPages: Math.ceil(total / limit), currentPage: page };
     }
-    return product;
-};
-// export const searchProducts = async (name?: string, max_price?: number, min_price?: number): Promise<Product[]> => {
-//     return await prisma.product.findMany({
-//         where: {
-//             ...(name && {
-//                 name: {
-//                     contains: name,
-//                     mode: "insensitive"
-//                 }
-//             }),
-//             price: {
-//                 ...(min_price !== undefined && { gte: min_price }),
-//                 ...(max_price !== undefined && { lte: max_price })
-//             },
-//             deletedAt: null
-//         },
-//         include: {
-//             category: true
-//         }
-//     });
-// }
-export const createProduct = async (data) => {
-    return await prisma.product.create({
-        data: {
-            name: data.name,
-            description: data.description ?? null,
-            price: data.price,
-            stock: data.stock,
-            categoryId: data.categoryId ?? null,
-            image: data.image
+    async getById(id) {
+        const numId = parseInt(id);
+        const product = await this.productRepo.findById(numId);
+        if (!product) {
+            throw new Error("Product tidak ditemukan");
         }
-    });
-};
-export const updateProduct = async (id, data) => {
-    await getProductById(id);
-    const numId = parseInt(id);
-    return await prisma.product.update({
-        where: {
-            id: numId,
-            deletedAt: null
-        },
-        data
-    });
-};
-export const deleteProduct = async (id) => {
-    const numId = parseInt(id);
-    return await prisma.product.update({
-        where: {
-            id: numId,
-            deletedAt: null
-        },
-        data: {
-            deletedAt: new Date()
-        }
-    });
-};
+        return product;
+    }
+    async create(data) {
+        return await this.productRepo.create(data);
+    }
+    async update(id, data) {
+        await this.getById(id);
+        const numId = parseInt(id);
+        return await this.productRepo.update(numId, data);
+    }
+    async delete(id) {
+        const numId = parseInt(id);
+        return await this.productRepo.softDelete(numId);
+    }
+}
 //# sourceMappingURL=product.service.js.map

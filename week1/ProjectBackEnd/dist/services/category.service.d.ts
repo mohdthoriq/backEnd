@@ -1,58 +1,34 @@
+import type { ICategoryRepository } from "../repository/category.repository";
 import type { Category } from "../src/generated/prisma/client";
-export declare const getAllCategories: () => Promise<({
-    products: {
-        name: string;
-        id: number;
-        description: string | null;
-        price: import("@prisma/client-runtime-utils").Decimal;
-        stock: number;
-        image: string;
-        categoryId: number | null;
-        createdAt: Date;
-        updatedAt: Date;
-        deletedAt: Date | null;
-    }[];
-} & {
-    name: string;
-    id: number;
-    createdAt: Date;
-    updatedAt: Date;
-    deletedAt: Date | null;
-})[]>;
-export declare const getCategoryById: (id: string) => Promise<{
-    name: string;
-    id: number;
-    createdAt: Date;
-    updatedAt: Date;
-    deletedAt: Date | null;
-} | null>;
-export declare const searchCategories: (name?: string) => Promise<({
-    products: {
-        name: string;
-        id: number;
-        description: string | null;
-        price: import("@prisma/client-runtime-utils").Decimal;
-        stock: number;
-        image: string;
-        categoryId: number | null;
-        createdAt: Date;
-        updatedAt: Date;
-        deletedAt: Date | null;
-    }[];
-} & {
-    name: string;
-    id: number;
-    createdAt: Date;
-    updatedAt: Date;
-    deletedAt: Date | null;
-})[]>;
-export declare const createCategory: (name: string) => Promise<{
-    name: string;
-    id: number;
-    createdAt: Date;
-    updatedAt: Date;
-    deletedAt: Date | null;
-}>;
-export declare const updateCategories: (id: string, data: Partial<Category>) => Promise<Category>;
-export declare const deleteCategory: (id: string) => Promise<Category>;
+export interface FindAllCategoryParams {
+    page: number;
+    limit: number;
+    search?: {
+        name?: string;
+    };
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
+}
+export interface CategoryListResponse {
+    categories: Category[];
+    total: number;
+    totalPages: number;
+    currentPage: number;
+}
+export interface ICategoryService {
+    list(params: FindAllCategoryParams): Promise<CategoryListResponse>;
+    getById(id: string): Promise<Category>;
+    create(name: string): Promise<Category>;
+    update(id: string, data: Partial<Category>): Promise<Category>;
+    delete(id: string): Promise<Category>;
+}
+export declare class CategoryService implements ICategoryService {
+    private categoryRepo;
+    constructor(categoryRepo: ICategoryRepository);
+    list(params: FindAllCategoryParams): Promise<CategoryListResponse>;
+    getById(id: string): Promise<Category>;
+    create(name: string): Promise<Category>;
+    update(id: string, data: Partial<Category>): Promise<Category>;
+    delete(id: string): Promise<Category>;
+}
 //# sourceMappingURL=category.service.d.ts.map

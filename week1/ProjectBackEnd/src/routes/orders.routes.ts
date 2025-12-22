@@ -1,17 +1,23 @@
 import { Router } from 'express';
-import * as order from '../controllers/orders.controller';
 import { validate } from '../utils/validator';
 import { checkoutOrderValidation, createOrderValidation, getOrderByIdValidation } from '../validations/orders.validation';
 import { authenticate } from '../middlewares/auth.middlleware';
+import { OrderRepository } from '../repository/orders.repository';
+import { PrismaInstance } from '../prisma';
+import { OrderService } from '../services/orders.service';
+import { OrderController } from '../controllers/orders.controller';
 
 const router = Router();
 
-router.get('/', order.getAll)
-router.get('/:id', validate(getOrderByIdValidation), order.getById);
-router.get('/checkout/:id', validate(getOrderByIdValidation), order.checkoutById);
-router.post('/checkout', authenticate, order.checkout);
-router.post('/', validate(createOrderValidation), order.create)
-router.put('/:id', order.update);
-router.delete('/:id', order.remove );
+const repo = new OrderRepository(PrismaInstance)
+const service = new OrderService(PrismaInstance, repo)
+const controller = new OrderController(service)
+
+router.get('/', controller.list)
+router.get('/:id', validate(getOrderByIdValidation), controller.getById);
+router.post('/checkout', authenticate, controller.checkout);
+router.post('/', validate(createOrderValidation), controller.create)
+router.put('/:id', controller.update);
+router.delete('/:id', controller.remove );
 
 export default router;

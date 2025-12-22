@@ -1,5 +1,5 @@
-import type { Prisma, Product } from "../src/generated/prisma/client";
-import * as productRepo from "../repository/product.repository";
+import type { IProductRepository } from "../repository/product.repository";
+import type { Category, Prisma, Product } from "../src/generated/prisma/client";
 
 export interface FindAllParams {
     page: number;
@@ -20,60 +20,72 @@ export interface ProductListResponse {
     currentPage: number 
 }
 
-export const getAllProducts = async (params: FindAllParams): Promise<ProductListResponse> => {
-    const { page, limit, search, sortBy, sortOrder } = params;
-
-    const skip = (page - 1) * limit;
-
-    const whereClause: Prisma.ProductWhereInput = {
-        deletedAt: null
-    }
-
-    if (search?.name) {
-        whereClause.name = {contains: search.name, mode: "insensitive"}
-    }
-    if (search?.min_price) {
-        whereClause.price ={ gte: search.min_price}
-    }
-    if (search?.max_price) {
-        whereClause.price = { lte: search.max_price}
-    }
-
-    const sortCriteria: Prisma.ProductOrderByWithRelationInput = sortBy ? { [sortBy]: sortOrder || "desc" } : {createdAt: "desc"}
-
-    const products = await productRepo.list(skip, limit, whereClause, sortCriteria)
-
-    const total = await productRepo.countAll(whereClause)
-
-    return { products, total, totalPages: Math.ceil(total / limit), currentPage: page};
+export interface IProductService {
+    list(params: FindAllParams): Promise<ProductListResponse>;
+    getById(id: string): Promise<Product | null & Category | null>;
+    create(data: { name: string, description?: string, price: number, stock: number, categoryId?: number, image: string }) : Promise<Product>;
+    update(id: string, data: Partial<Product>): Promise<Product>;
+    delete(id: string): Promise<Product>;
 }
 
-export const getProductById = async (id: string): Promise<Product> => {
-    const numId = parseInt(id)
+export class ProductService implements IProductService {
+    constructor(private productRepo: IProductRepository) { }
 
-    const product = await productRepo.findById(numId);
-
-    if (!product) {
-        throw new Error("Product tidak ditemukan");
-    }
-
-    return product;
-}
-
-export const createProduct = async (data: { name: string, description?: string, price: number, stock: number, categoryId?: number, image: string }): Promise<Product> => {
-    return await productRepo.create(data)
-}
-
-export const updateProduct = async (id: string, data: Partial<Product>): Promise<Product> => {
-    await getProductById(id);
-
-    const numId = parseInt(id);
-
-    return await productRepo.update(numId, data)
-}
-
-export const deleteProduct = async (id: string): Promise<Product> => {
-    const numId = parseInt(id);
+    async list(params: FindAllParams): Promise<ProductListResponse>{
+        const { page, limit, search, sortBy, sortOrder } = params;
     
-    return await productRepo.softDelete(numId)
+        const skip = (page - 1) * limit;
+    
+        const whereClause: Prisma.ProductWhereInput = {
+            deletedAt: null
+        }
+    
+        if (search?.name) {
+            whereClause.name = {contains: search.name, mode: "insensitive"}
+        }
+        if (search?.min_price) {
+            whereClause.price ={ gte: search.min_price}
+        }
+        if (search?.max_price) {
+            whereClause.price = { lte: search.max_price}
+        }
+    
+        const sortCriteria: Prisma.ProductOrderByWithRelationInput = sortBy ? { [sortBy]: sortOrder || "desc" } : {createdAt: "desc"}
+    
+        const products = await this.productRepo.list(skip, limit, whereClause, sortCriteria)
+    
+        const total = await this.productRepo.countAll(whereClause)
+    
+        return { products, total, totalPages: Math.ceil(total / limit), currentPage: page};
+    }
+    async getById(id: string): Promise<Product | null & Category | null> {
+        const numId = parseInt(id)
+    
+        const product = await this.productRepo.findById(numId);
+    
+        if (!product) {
+            throw new Error("Product tidak ditemukan");
+        }
+    
+        return product;
+    }
+    
+    async create(data: { name: string, description?: string, price: number, stock: number, categoryId?: number, image: string }): Promise<Product> {
+        return await this.productRepo.create(data)
+    }
+    
+    async update(id: string, data: Partial<Product>): Promise<Product> {
+        await this.getById(id);
+    
+        const numId = parseInt(id);
+    
+        return await this.productRepo.update(numId, data)
+    }
+    
+    async delete(id: string): Promise<Product> {
+        const numId = parseInt(id);
+        
+        return await this.productRepo.softDelete(numId)
+    }
 }
+

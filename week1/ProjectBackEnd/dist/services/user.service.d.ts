@@ -1,22 +1,13 @@
-export declare const register: (data: {
-    username: string;
-    email: string;
-    password: string;
-    role?: string;
-}) => Promise<{
-    id: number;
-    createdAt: Date;
-    updatedAt: Date;
-    username: string;
-    email: string;
-    password: string;
-    role: string;
-}>;
-export declare const loginUser: (data: {
-    email: string;
-    password: string;
-}) => Promise<{
-    user: {
+import type { IUserRepository } from "../repository/user.repository";
+export declare class UserService {
+    private userRepo;
+    constructor(userRepo: IUserRepository);
+    register(data: {
+        username: string;
+        email: string;
+        password: string;
+        role?: string;
+    }): Promise<{
         id: number;
         createdAt: Date;
         updatedAt: Date;
@@ -24,7 +15,21 @@ export declare const loginUser: (data: {
         email: string;
         password: string;
         role: string;
-    };
-    token: string;
-}>;
+    }>;
+    login(data: {
+        email: string;
+        password: string;
+    }): Promise<{
+        user: {
+            id: number;
+            createdAt: Date;
+            updatedAt: Date;
+            username: string;
+            email: string;
+            password: string;
+            role: string;
+        };
+        token: string;
+    }>;
+}
 //# sourceMappingURL=user.service.d.ts.map

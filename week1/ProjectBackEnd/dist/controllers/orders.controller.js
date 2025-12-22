@@ -1,68 +1,65 @@
-import * as order from "../services/orders.service";
 import { successResponse } from "../utils/response";
-export const checkout = async (req, res) => {
-    if (!req.user) {
-        throw new Error("Unauthorized");
+export class OrderController {
+    orderService;
+    constructor(orderService) {
+        this.orderService = orderService;
     }
-    const { items } = req.body;
-    const result = await order.checkoutOrder(req.user.id, items);
-    successResponse(res, "Order checkout successfully", result, null, 201);
-};
-export const checkoutById = async (req, res) => {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
-        throw new Error("ID tidak valid");
+    async checkout(req, res) {
+        if (!req.user)
+            throw new Error("Unauthorized");
+        const { items } = req.body;
+        const result = await this.orderService.checkout(req.user.id, items);
+        successResponse(res, "Order checkout successfully", result, null, 201);
     }
-    const data = await order.getCheckoutById(id);
-    successResponse(res, 'Success', data);
-};
-export const getAll = async (req, res) => {
-    const data = await order.getAllOrders();
-    successResponse(res, 'Success', data);
-};
-export const getById = async (req, res) => {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
-        throw new Error("ID tidak valid");
+    async list(req, res) {
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+        const result = await this.orderService.list({
+            page,
+            limit,
+            search: req.query.search,
+            sortBy: req.query.sortBy,
+            sortOrder: req.query.sortOrder,
+        });
+        const pagination = {
+            page: result.currentPage,
+            limit,
+            total: result.total,
+            totalPages: result.totalPages,
+        };
+        successResponse(res, "Daftar Order ditemukan", result.orders, pagination);
     }
-    const data = await order.getOrderById(id);
-    successResponse(res, 'Success', data);
-};
-export const search = async (req, res) => {
-    const userId = req.query.userId ? Number(req.query.userId) : undefined;
-    const minTotal = req.query.minTotal ? Number(req.query.minTotal) : undefined;
-    const maxTotal = req.query.maxTotal ? Number(req.query.maxTotal) : undefined;
-    const data = await order.searchOrders(userId, maxTotal, minTotal);
-    successResponse(res, "Success", data);
-};
-export const create = async (req, res) => {
-    if (!req.user) {
-        throw new Error("Unauthorized");
+    async getById(req, res) {
+        const id = Number(req.params.id);
+        if (isNaN(id))
+            throw new Error("ID tidak valid");
+        const data = await this.orderService.getById(id);
+        successResponse(res, "Success", data);
     }
-    const { items } = req.body;
-    const data = await order.createOrder({
-        userId: req.user.id,
-        items,
-    });
-    successResponse(res, "Order created successfully", data);
-};
-export const update = async (req, res) => {
-    const { id } = req.params;
-    const { items } = req.body;
-    const orderId = parseInt(id);
-    if (isNaN(orderId)) {
-        throw new Error("Order ID tidak valid");
+    async create(req, res) {
+        if (!req.user)
+            throw new Error("Unauthorized");
+        const { items } = req.body;
+        const data = await this.orderService.create({
+            userId: req.user.id,
+            items,
+        });
+        successResponse(res, "Order created successfully", data, null, 201);
     }
-    const update = await order.updateOrder(orderId, items);
-    successResponse(res, 'Order updated successfully', update);
-};
-export const remove = async (req, res) => {
-    const { id } = req.params;
-    const orderId = parseInt(id);
-    if (isNaN(orderId)) {
-        throw new Error("Order ID tidak valid");
+    async update(req, res) {
+        const id = Number(req.params.id);
+        if (isNaN(id))
+            throw new Error("Order ID tidak valid");
+        const { items } = req.body;
+        const data = await this.orderService.update(id, items);
+        successResponse(res, "Order updated successfully", data);
     }
-    await order.deleteOrder(orderId);
-    successResponse(res, 'Order deleted successfully', null);
-};
+    async remove(req, res) {
+        const id = Number(req.params.id);
+        if (isNaN(id))
+            throw new Error("Order ID tidak valid");
+        await this.orderService.delete(id);
+        successResponse(res, "Order deleted successfully", null);
+    }
+}
 //# sourceMappingURL=orders.controller.js.map

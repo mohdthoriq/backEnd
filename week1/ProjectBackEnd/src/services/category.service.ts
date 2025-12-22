@@ -1,84 +1,100 @@
+import type { ICategoryRepository } from "../repository/category.repository";
 import type { Category, Prisma } from "../src/generated/prisma/client";
-import type { FindAllParams } from "./product.service";
-import * as categoryRepo from "../repository/category.repository";
 
-interface FindAllCategoryParams extends FindAllParams {
+export interface FindAllCategoryParams {
+  page: number;
+  limit: number;
   search?: {
-    name?: string
-  }
+    name?: string;
+  };
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
 }
 
-interface CategoryListResponse {
-  categories: Category[]
-  total: number
-  totalPages: number
-  currentPage: number
+export interface CategoryListResponse {
+  categories: Category[];
+  total: number;
+  totalPages: number;
+  currentPage: number;
 }
 
-export const getAllCategories = async (
-  params: FindAllCategoryParams
-): Promise<CategoryListResponse> => {
-  const { page, limit, search, sortBy, sortOrder } = params
-
-  const skip = (page - 1) * limit
-
-  const whereClause: Prisma.CategoryWhereInput = {
-    deletedAt: null,
-  }
-
-  if (search?.name) {
-    whereClause.name = {
-      contains: search.name,
-      mode: "insensitive",
-    }
-  }
-
-  const sortCriteria: any = sortBy
-    ? { [sortBy]: sortOrder || "desc" }
-    : { createdAt: "desc" }
-
-
-  const categories = await categoryRepo.list(skip, limit, whereClause, sortCriteria)
-
-  const total = await categoryRepo.countAll(whereClause)
-
-  return {
-    categories,
-    total,
-    totalPages: Math.ceil(total / limit),
-    currentPage: page,
-  }
+export interface ICategoryService {
+  list(params: FindAllCategoryParams): Promise<CategoryListResponse>;
+  getById(id: string): Promise<Category>;
+  create(name: string): Promise<Category>;
+  update(id: string, data: Partial<Category>): Promise<Category>;
+  delete(id: string): Promise<Category>;
 }
 
-export const getCategoryById = async (id: string) => {
-    const numId = parseInt(id)
+export class CategoryService implements ICategoryService {
+  constructor(private categoryRepo: ICategoryRepository) {}
 
-    return await categoryRepo.findById(numId)
-}
+  async list(params: FindAllCategoryParams): Promise<CategoryListResponse> {
+    const { page, limit, search, sortBy, sortOrder } = params;
 
-export const createCategory = async (name: string) => {
-    const isExists = await categoryRepo.findByName(name);
+    const skip = (page - 1) * limit;
 
+    const whereClause: Prisma.CategoryWhereInput = {
+      deletedAt: null
+    };
 
-    if (isExists) {
-        throw new Error('Category with this name already exists');
+    if (search?.name) {
+      whereClause.name = {
+        contains: search.name,
+        mode: "insensitive"
+      };
     }
 
-    return await categoryRepo.create({
-        name
-    })
+    const sortCriteria: Prisma.CategoryOrderByWithRelationInput = sortBy
+      ? { [sortBy]: sortOrder || "desc" }
+      : { createdAt: "desc" };
 
-}
+    const categories = await this.categoryRepo.list(
+      skip,
+      limit,
+      whereClause,
+      sortCriteria
+    );
 
-export const updateCategories = async (id: string, data: Partial<Category>): Promise<Category> => {
-    await getCategoryById(id);
+    const total = await this.categoryRepo.countAll(whereClause);
 
-    const numId = parseInt(id);
+    return {
+      categories,
+      total,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page
+    };
+  }
 
-    return await categoryRepo.update(numId, data)
-}
+  async getById(id: string): Promise<Category> {
+    const numId = Number(id);
 
-export const deleteCategory = async (id: string): Promise<Category> => {
-    const numId = parseInt(id);
-    return await categoryRepo.softDelete(numId)
+    const category = await this.categoryRepo.findById(numId);
+
+    if (!category) {
+      throw new Error("Category tidak ditemukan");
+    }
+
+    return category;
+  }
+
+  async create(name: string): Promise<Category> {
+    const exists = await this.categoryRepo.findByName(name);
+
+    if (exists) {
+      throw new Error("Category dengan nama ini sudah ada");
+    }
+
+    return this.categoryRepo.create({ name });
+  }
+
+  async update(id: string, data: Partial<Category>): Promise<Category> {
+    await this.getById(id);
+
+    return this.categoryRepo.update(Number(id), data);
+  }
+
+  async delete(id: string): Promise<Category> {
+    return this.categoryRepo.softDelete(Number(id));
+  }
 }

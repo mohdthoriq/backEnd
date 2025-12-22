@@ -1,105 +1,73 @@
-import { getPrisma } from "../prisma";
-const prisma = getPrisma();
-export const getAllItems = async () => {
-    return await prisma.orderItem.findMany({
-        include: {
-            order: true,
-            product: true
-        }
-    });
-};
-export const getItemById = async (id) => {
-    const item = await prisma.orderItem.findUnique({
-        where: {
-            id
-        },
-        include: {
-            order: true,
-            product: true
-        }
-    });
-    if (!item) {
-        throw new Error("Order item tidak ditemukan");
+export class OrderItemService {
+    prisma;
+    orderItemRepo;
+    constructor(prisma, orderItemRepo) {
+        this.prisma = prisma;
+        this.orderItemRepo = orderItemRepo;
     }
-    return item;
-};
-export const searchItems = async (orderId, productId, minQty, maxQty) => {
-    return await prisma.orderItem.findMany({
-        where: {
-            ...(orderId !== undefined && { order_id: orderId }),
-            ...(productId !== undefined && { product_id: productId }),
-            quantity: {
-                ...(minQty !== undefined && { gte: minQty }),
-                ...(maxQty !== undefined && { lte: maxQty })
-            }
-        },
-        include: {
-            order: true,
-            product: true
+    async list(params) {
+        const { page, limit, search, sortBy, sortOrder } = params;
+        const skip = (page - 1) * limit;
+        const where = {};
+        if (search?.name) {
+            where.product = {
+                name: {
+                    contains: search.name,
+                    mode: "insensitive",
+                },
+            };
         }
-    });
-};
-export const createItem = async (data) => {
-    const order = await prisma.order.findUnique({
-        where: { id: data.orderId }
-    });
-    if (!order)
-        throw new Error("Order tidak ditemukan");
-    const product = await prisma.product.findUnique({
-        where: { id: data.productId }
-    });
-    if (!product)
-        throw new Error("Product tidak ditemukan");
-    return await prisma.orderItem.create({
-        data: {
-            order_id: data.orderId,
-            product_id: data.productId,
+        const orderBy = sortBy
+            ? { [sortBy]: sortOrder || "desc" }
+            : { order: { createdAt: "desc" } };
+        const { items, total } = await this.orderItemRepo.findAll({
+            skip,
+            take: limit,
+            where,
+            orderBy,
+        });
+        return {
+            items,
+            total,
+            totalPages: Math.ceil(total / limit),
+            currentPage: page,
+        };
+    }
+    async getById(id) {
+        const item = await this.orderItemRepo.findById(id);
+        if (!item)
+            throw new Error("Order item tidak ditemukan");
+        return item;
+    }
+    async create(data) {
+        const order = await this.prisma.order.findUnique({
+            where: { id: data.orderId },
+        });
+        if (!order)
+            throw new Error("Order tidak ditemukan");
+        const product = await this.prisma.product.findUnique({
+            where: { id: data.productId },
+        });
+        if (!product)
+            throw new Error("Product tidak ditemukan");
+        return this.orderItemRepo.create({
+            orderId: data.orderId,
+            productId: data.productId,
             quantity: data.quantity,
             priceAtTime: product.price,
-        },
-        include: {
-            order: true,
-            product: true
-        }
-    });
-};
-export const updateItem = async (id, data) => {
-    const item = await prisma.orderItem.findUnique({
-        where: {
-            id
-        }
-    });
-    if (!item) {
-        throw new Error("Order item tidak ditemukan");
+        });
     }
-    return await prisma.orderItem.update({
-        where: {
-            id
-        },
-        data: {
-            order_id: data.orderId,
-            product_id: data.productId,
-            quantity: data.quantity
-        },
-        include: {
-            order: true,
-            product: true
-        }
-    });
-};
-export const deleteItem = async (id) => {
-    const item = await prisma.orderItem.findUnique({
-        where: {
-            id
-        }
-    });
-    if (!item) {
-        throw new Error("Order item tidak ditemukan");
+    async update(id, data) {
+        const exist = await this.orderItemRepo.findRawById(id);
+        if (!exist)
+            throw new Error("Order item tidak ditemukan");
+        return this.orderItemRepo.update(id, data);
     }
-    await prisma.orderItem.delete({
-        where: {
-            id
-        }
-    });
-};
+    async delete(id) {
+        const exist = await this.orderItemRepo.findRawById(id);
+        if (!exist)
+            throw new Error("Order item tidak ditemukan");
+        await this.orderItemRepo.remove(id);
+    }
+}
 //# sourceMappingURL=order_items.service.js.map

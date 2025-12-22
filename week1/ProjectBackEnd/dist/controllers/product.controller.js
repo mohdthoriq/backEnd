@@ -1,67 +1,64 @@
 import { successResponse } from "../utils/response";
-import { createProduct, deleteProduct, getAllProducts, getProductById, updateProduct } from "../services/product.service";
-export const getAll = async (req, res) => {
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 10;
-    const search = req.query.search;
-    const sortBy = req.query.sortBy;
-    const sortOrder = req.query.sortOrder;
-    const result = await getAllProducts({
-        page,
-        limit,
-        search,
-        sortBy,
-        sortOrder
-    });
-    const pagination = {
-        page: result.currentPage,
-        limit,
-        total: result.total
-    };
-    successResponse(res, "Daftar Product ditemukan", result, pagination);
-};
-export const getById = async (req, res) => {
-    if (!req.params.id) {
-        throw new Error("ID tidak ditemukan");
+export class ProductController {
+    productService;
+    constructor(productService) {
+        this.productService = productService;
     }
-    const product = await getProductById(req.params.id);
-    successResponse(res, "Product ditemukan", product);
-};
-// export const search = async(req: Request, res: Response) => {
-//     const { name, max_price, min_price } = req.query;
-//     const result = await searchProducts(name?.toString(), Number(max_price), Number(min_price));
-//     successResponse(
-//         res,
-//         "Hasil pencarian ditemukan",
-//         result,
-//     )
-// }
-export const create = async (req, res) => {
-    const file = req.file;
-    if (!file)
-        throw new Error("image is required");
-    const { name, description, price, stock, categoryId } = req.body;
-    const imageURL = `/public/uploads/${file.filename}`;
-    const data = {
-        name: String(name),
-        price: Number(price),
-        stock: Number(stock),
-        categoryId: Number(categoryId),
-        ...(description && { description: String(description) }),
-        image: imageURL
-    };
-    const newProduct = await createProduct(data);
-    successResponse(res, "product berhasil ditambahkan", newProduct, null, 201);
-};
-export const update = async (req, res) => {
-    if (!req.params.id) {
-        throw new Error("ID tidak ditemukan");
+    async list(req, res) {
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+        const search = req.query.search;
+        const sortBy = req.query.sortBy;
+        const sortOrder = req.query.sortOrder;
+        const result = await this.productService.list({
+            page,
+            limit,
+            search,
+            sortBy,
+            sortOrder
+        });
+        const pagination = {
+            page: result.currentPage,
+            limit,
+            total: result.total,
+            totalPages: result.totalPages
+        };
+        successResponse(res, "Daftar Product ditemukan", result, pagination);
     }
-    const product = await updateProduct(req.params.id, req.body);
-    successResponse(res, "Product berhasil diperbarui", product);
-};
-export const remove = async (req, res) => {
-    const deleted = await deleteProduct(req.params.id);
-    successResponse(res, "product berhasil dihapus", deleted);
-};
+    async getById(req, res) {
+        if (!req.params.id) {
+            throw new Error("ID tidak ditemukan");
+        }
+        const product = await this.productService.getById(req.params.id);
+        successResponse(res, "Product ditemukan", product);
+    }
+    async create(req, res) {
+        const file = req.file;
+        if (!file)
+            throw new Error("image is required");
+        const { name, description, price, stock, categoryId } = req.body;
+        const imageURL = `/public/uploads/${file.filename}`;
+        const data = {
+            name: String(name),
+            price: Number(price),
+            stock: Number(stock),
+            categoryId: Number(categoryId),
+            ...(description && { description: String(description) }),
+            image: imageURL
+        };
+        const newProduct = await this.productService.create(data);
+        successResponse(res, "product berhasil ditambahkan", newProduct, null, 201);
+    }
+    async update(req, res) {
+        if (!req.params.id) {
+            throw new Error("ID tidak ditemukan");
+        }
+        const product = await this.productService.update(req.params.id, req.body);
+        successResponse(res, "Product berhasil diperbarui", product);
+    }
+    async remove(req, res) {
+        const deleted = await this.productService.delete(req.params.id);
+        successResponse(res, "product berhasil dihapus", deleted);
+    }
+}
 //# sourceMappingURL=product.controller.js.map

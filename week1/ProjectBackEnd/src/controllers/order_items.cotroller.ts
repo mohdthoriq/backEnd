@@ -1,100 +1,100 @@
-import type { Request, Response } from 'express';
-import * as items from '../services/order_items.service';
-import { successResponse } from '../utils/response';
+import type { Request, Response } from "express";
+import { successResponse } from "../utils/response";
+import type { IOrderItemService } from "../services/order_items.service";
 
-export const getAll = async (req: Request, res: Response) => {
-  const page = Number(req.query.page) || 1
-  const limit = Number(req.query.limit) || 10
-  const search = req.query.search as any
-  const sortBy = req.query.sortBy as string
-  const sortOrder = req.query.sortOrder as "asc" | "desc"
+export class OrderItemController {
+  constructor(private orderItemService: IOrderItemService) {}
 
-  const result = await items.getAllOrderItems({
-    page,
-    limit,
-    search,
-    sortBy,
-    sortOrder,
-  })
+  getAll = async (req: Request, res: Response) => {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const search = req.query.search as any;
+    const sortBy = req.query.sortBy as string;
+    const sortOrder = req.query.sortOrder as "asc" | "desc";
 
-  const pagination = {
-    page: result.currentPage,
-    limit,
-    total: result.total,
-    totalPages: result.totalPages,
-  }
+    const result = await this.orderItemService.list({
+      page,
+      limit,
+      search,
+      sortBy,
+      sortOrder,
+    });
 
-  successResponse(
-    res,
-    "Daftar Order Items ditemukan",
-    result,
-    pagination
-  )
-}
+    const pagination = {
+      page: result.currentPage,
+      limit,
+      total: result.total,
+      totalPages: result.totalPages,
+    };
 
-export const getById = async (req: Request, res: Response) => {
-    const id = parseInt(req.params.id!);
-    if (isNaN(id)) {
-        throw new Error("ID tidak valid");
+    successResponse(
+      res,
+      "Daftar Order Items ditemukan",
+      result.items,
+      pagination
+    );
+  };
+
+  getById = async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+    if (isNaN(id)) throw new Error("ID tidak valid");
+
+    const data = await this.orderItemService.getById(id);
+    successResponse(res, "Success", data);
+  };
+
+  create = async (req: Request, res: Response) => {
+    const { orderId, productId, quantity } = req.body;
+
+    const parsedOrderId = Number(orderId);
+    const parsedProductId = Number(productId);
+    const parsedQty = Number(quantity);
+
+    if (
+      isNaN(parsedOrderId) ||
+      isNaN(parsedProductId) ||
+      isNaN(parsedQty) ||
+      parsedQty <= 0
+    ) {
+      throw new Error("Order ID, Product ID, atau quantity tidak valid");
     }
 
-    const data = await items.getItemById(id);
+    const data = await this.orderItemService.create({
+      orderId: parsedOrderId,
+      productId: parsedProductId,
+      quantity: parsedQty,
+    });
 
-    successResponse(res, 'Success', data);
-}
+    successResponse(res, "Order item created successfully", data);
+  };
 
-export const create = async (req: Request, res: Response) => {
-  const { orderId, productId, quantity } = req.body;
-
-  const parsedOrderId = Number(orderId);
-  const parsedProductId = Number(productId);
-  const parsedQty = Number(quantity);
-
-  if (
-    isNaN(parsedOrderId) ||
-    isNaN(parsedProductId) ||
-    isNaN(parsedQty) ||
-    parsedQty <= 0
-  ) {
-    throw new Error("Order ID, Product ID, atau quantity tidak valid");
-  }
-
-  const data = await items.createItem({
-    orderId: parsedOrderId,
-    productId: parsedProductId,
-    quantity: parsedQty,
-  });
-
-  successResponse(res, "Order item created successfully", data);
-};
-
-export const update = async (req: Request, res: Response) => {
-    const id = parseInt(req.params.id!);
-    if (isNaN(id)) {
-        throw new Error("ID tidak valid");
-    }
+  update = async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+    if (isNaN(id)) throw new Error("ID tidak valid");
 
     const { orderId, productId, quantity } = req.body;
 
-    const order_id = parseInt(orderId);
-    const product_id = parseInt(productId);
+    const parsedOrderId = Number(orderId);
+    const parsedProductId = Number(productId);
 
-    if (isNaN(order_id) || isNaN(product_id)) {
-        throw new Error("Order ID atau Product ID tidak valid");
+    if (isNaN(parsedOrderId) || isNaN(parsedProductId)) {
+      throw new Error("Order ID atau Product ID tidak valid");
     }
 
-    const data = await items.updateItem(id, {orderId: order_id, productId: product_id, quantity});
+    const data = await this.orderItemService.update(id, {
+      orderId: parsedOrderId,
+      productId: parsedProductId,
+      quantity,
+    });
 
-    successResponse(res, 'Order item updated successfully', data);
-}
+    successResponse(res, "Order item updated successfully", data);
+  };
 
-export const remove = async (req: Request, res: Response) => {
-    const id = parseInt(req.params.id!);
-    if (isNaN(id)) {
-        throw new Error("ID tidak valid");
-    }
+  remove = async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+    if (isNaN(id)) throw new Error("ID tidak valid");
 
-    await items.deleteItem(id);
-
-    successResponse(res, 'Order item deleted successfully', null);
+    await this.orderItemService.delete(id);
+    successResponse(res, "Order item deleted successfully", null);
+  };
 }

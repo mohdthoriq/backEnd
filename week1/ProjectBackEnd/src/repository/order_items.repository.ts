@@ -1,92 +1,128 @@
-import { getPrisma } from "../prisma"
-import type { Prisma } from "../src/generated/prisma/client"
+import type {
+  Prisma,
+  PrismaClient,
+  OrderItem
+} from "../src/generated/prisma/client";
 
-const prisma = getPrisma()
+export interface IOrderItemRepository {
+  findAll(params: {
+    skip: number;
+    take: number;
+    where: Prisma.OrderItemWhereInput;
+    orderBy: Prisma.OrderItemOrderByWithRelationInput;
+  }): Promise<{ items: OrderItem[]; total: number }>;
 
-export const findAll = async (params: {
-  skip: number
-  take: number
-  where: Prisma.OrderItemWhereInput
-  orderBy: Prisma.OrderItemOrderByWithRelationInput
-}) => {
-  const { skip, take, where, orderBy } = params
+  findById(id: number): Promise<OrderItem | null>;
 
-  const items = await prisma.orderItem.findMany({
-    skip,
-    take,
-    where,
-    orderBy,
-    include: {
-      order: true,
-      product: true,
-    },
-  })
+  findRawById(id: number): Promise<OrderItem | null>;
 
-  const total = await prisma.orderItem.count({ where })
+  create(data: {
+    orderId: number;
+    productId: number;
+    quantity: number;
+    priceAtTime: Prisma.Decimal;
+  }): Promise<OrderItem>;
 
-  return { items, total }
-}
-
-export const findById = async (id: number) => {
-  return prisma.orderItem.findUnique({
-    where: { id },
-    include: {
-      order: true,
-      product: true,
-    },
-  })
-}
-
-export const findRawById = async (id: number) => {
-  return prisma.orderItem.findUnique({
-    where: { id }
-  })
-}
-
-export const create = async (data: {
-  orderId: number
-  productId: number
-  quantity: number
-  priceAtTime: Prisma.Decimal
-}) => {
-  return prisma.orderItem.create({
+  update(
+    id: number,
     data: {
-      order_id: data.orderId,
-      product_id: data.productId,
-      quantity: data.quantity,
-      priceAtTime: data.priceAtTime,
-    },
-    include: {
-      order: true,
-      product: true,
-    },
-  })
+      orderId: number;
+      productId: number;
+      quantity: number;
+    }
+  ): Promise<OrderItem>;
+
+  remove(id: number): Promise<OrderItem>;
 }
 
-export const update = async (
-  id: number,
-  data: {
-    orderId: number
-    productId: number
-    quantity: number
+export class OrderItemRepository implements IOrderItemRepository {
+  constructor(private prisma: PrismaClient) {}
+
+  async findAll(params: {
+    skip: number;
+    take: number;
+    where: Prisma.OrderItemWhereInput;
+    orderBy: Prisma.OrderItemOrderByWithRelationInput;
+  }) {
+    const { skip, take, where, orderBy } = params;
+
+    const items = await this.prisma.orderItem.findMany({
+      skip,
+      take,
+      where,
+      orderBy,
+      include: {
+        order: true,
+        product: true,
+      },
+    });
+
+    const total = await this.prisma.orderItem.count({ where });
+
+    return { items, total };
   }
-) => {
-  return prisma.orderItem.update({
-    where: { id },
-    data: {
-      order_id: data.orderId,
-      product_id: data.productId,
-      quantity: data.quantity,
-    },
-    include: {
-      order: true,
-      product: true,
-    },
-  })
-}
 
-export const remove = async (id: number) => {
-  return prisma.orderItem.delete({
-    where: { id },
-  })
+  async findById(id: number) {
+    return this.prisma.orderItem.findUnique({
+      where: { id },
+      include: {
+        order: true,
+        product: true,
+      },
+    });
+  }
+
+  async findRawById(id: number) {
+    return this.prisma.orderItem.findUnique({
+      where: { id },
+    });
+  }
+
+  async create(data: {
+    orderId: number;
+    productId: number;
+    quantity: number;
+    priceAtTime: Prisma.Decimal;
+  }) {
+    return this.prisma.orderItem.create({
+      data: {
+        order_id: data.orderId,
+        product_id: data.productId,
+        quantity: data.quantity,
+        priceAtTime: data.priceAtTime,
+      },
+      include: {
+        order: true,
+        product: true,
+      },
+    });
+  }
+
+  async update(
+    id: number,
+    data: {
+      orderId: number;
+      productId: number;
+      quantity: number;
+    }
+  ) {
+    return this.prisma.orderItem.update({
+      where: { id },
+      data: {
+        order_id: data.orderId,
+        product_id: data.productId,
+        quantity: data.quantity,
+      },
+      include: {
+        order: true,
+        product: true,
+      },
+    });
+  }
+
+  async remove(id: number) {
+    return this.prisma.orderItem.delete({
+      where: { id },
+    });
+  }
 }

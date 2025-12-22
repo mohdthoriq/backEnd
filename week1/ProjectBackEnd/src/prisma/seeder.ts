@@ -1,8 +1,8 @@
-import { getPrisma } from '../prisma';
+import { PrismaInstance } from '../prisma';
 import { faker } from '@faker-js/faker';
 import bcrypt from 'bcrypt';
 
-const prisma = getPrisma();
+const prisma = PrismaInstance;
 
 async function main() {
   console.log('🌱 Starting database seeding...');

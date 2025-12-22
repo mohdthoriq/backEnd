@@ -1,5 +1,6 @@
-import type { Product } from "../src/generated/prisma/client";
-interface FindAllParams {
+import type { IProductRepository } from "../repository/product.repository";
+import type { Category, Product } from "../src/generated/prisma/client";
+export interface FindAllParams {
     page: number;
     limit: number;
     search?: {
@@ -10,23 +11,40 @@ interface FindAllParams {
     sortBy?: string;
     sortOrder?: "asc" | "desc";
 }
-interface ProductListResponse {
+export interface ProductListResponse {
     products: Product[];
     total: number;
     totalPages: number;
     currentPage: number;
 }
-export declare const getAllProducts: (params: FindAllParams) => Promise<ProductListResponse>;
-export declare const getProductById: (id: string) => Promise<Product>;
-export declare const createProduct: (data: {
-    name: string;
-    description?: string;
-    price: number;
-    stock: number;
-    categoryId?: number;
-    image: string;
-}) => Promise<Product>;
-export declare const updateProduct: (id: string, data: Partial<Product>) => Promise<Product>;
-export declare const deleteProduct: (id: string) => Promise<Product>;
-export {};
+export interface IProductService {
+    list(params: FindAllParams): Promise<ProductListResponse>;
+    getById(id: string): Promise<Product | null & Category | null>;
+    create(data: {
+        name: string;
+        description?: string;
+        price: number;
+        stock: number;
+        categoryId?: number;
+        image: string;
+    }): Promise<Product>;
+    update(id: string, data: Partial<Product>): Promise<Product>;
+    delete(id: string): Promise<Product>;
+}
+export declare class ProductService implements IProductService {
+    private productRepo;
+    constructor(productRepo: IProductRepository);
+    list(params: FindAllParams): Promise<ProductListResponse>;
+    getById(id: string): Promise<Product | null & Category | null>;
+    create(data: {
+        name: string;
+        description?: string;
+        price: number;
+        stock: number;
+        categoryId?: number;
+        image: string;
+    }): Promise<Product>;
+    update(id: string, data: Partial<Product>): Promise<Product>;
+    delete(id: string): Promise<Product>;
+}
 //# sourceMappingURL=product.service.d.ts.map

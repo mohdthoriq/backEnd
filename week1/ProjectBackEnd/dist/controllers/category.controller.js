@@ -1,36 +1,58 @@
-import { createCategory, deleteCategory, getAllCategories, getCategoryById, searchCategories, updateCategories } from "../services/category.service";
 import { successResponse } from "../utils/response";
-export const getAll = async (req, res) => {
-    const categories = await getAllCategories();
-    successResponse(res, 'Categories retrieved successfully', categories);
-};
-export const getById = async (req, res) => {
-    if (!req.params.id) {
-        throw new Error("ID category tidak ditemukan");
+export class CategoryController {
+    categoryService;
+    constructor(categoryService) {
+        this.categoryService = categoryService;
     }
-    const category = await getCategoryById(req.params.id);
-    successResponse(res, 'Category retrieved successfully', category);
-};
-export const search = async (req, res) => {
-    const { name } = req.query;
-    const categories = await searchCategories(name?.toString());
-};
-export const create = async (req, res) => {
-    const category = await createCategory(req.body.name);
-    successResponse(res, 'Category created successfully', category);
-};
-export const update = async (req, res) => {
-    if (!req.params.id) {
-        throw new Error("ID category tidak ditemukan");
+    async list(req, res) {
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+        const search = req.query.search;
+        const sortBy = req.query.sortBy;
+        const sortOrder = req.query.sortOrder;
+        const result = await this.categoryService.list({
+            page,
+            limit,
+            search,
+            sortBy,
+            sortOrder
+        });
+        const pagination = {
+            page: result.currentPage,
+            limit,
+            total: result.total,
+            totalPages: result.totalPages
+        };
+        successResponse(res, "Daftar Category ditemukan", result, pagination);
     }
-    const category = await updateCategories(req.params.id, req.body);
-    successResponse(res, 'Category updated successfully', category);
-};
-export const remove = async (req, res) => {
-    if (!req.params.id) {
-        throw new Error("ID category tidak ditemukan");
+    async getById(req, res) {
+        if (!req.params.id) {
+            throw new Error("ID category tidak ditemukan");
+        }
+        const category = await this.categoryService.getById(req.params.id);
+        successResponse(res, "Category ditemukan", category);
     }
-    const category = await deleteCategory(req.params.id);
-    successResponse(res, 'Category deleted successfully', category);
-};
+    async create(req, res) {
+        const { name } = req.body;
+        if (!name) {
+            throw new Error("Nama category wajib diisi");
+        }
+        const category = await this.categoryService.create(name);
+        successResponse(res, "Category berhasil dibuat", category, null, 201);
+    }
+    async update(req, res) {
+        if (!req.params.id) {
+            throw new Error("ID category tidak ditemukan");
+        }
+        const category = await this.categoryService.update(req.params.id, req.body);
+        successResponse(res, "Category berhasil diperbarui", category);
+    }
+    async remove(req, res) {
+        if (!req.params.id) {
+            throw new Error("ID category tidak ditemukan");
+        }
+        const deleted = await this.categoryService.delete(req.params.id);
+        successResponse(res, "Category berhasil dihapus", deleted);
+    }
+}
 //# sourceMappingURL=category.controller.js.map

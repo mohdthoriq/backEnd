@@ -1,18 +1,22 @@
 import { Router } from "express";
-import * as category from "../controllers/category.controller";
 import { validate } from "../utils/validator";
 import { createCategoryValidation, getCategoryByIdValidation } from "../validations/category.validation";
+import { PrismaInstance } from "../prisma";
+import { CategoryRepository } from "../repository/category.repository";
+import { CategoryService } from "../services/category.service";
+import { CategoryController } from "../controllers/category.controller";
 
 const router = Router();
 
-router.get('/', category.getAll)
+const repo = new CategoryRepository(PrismaInstance)
+const service = new CategoryService(repo)
+const controller = new CategoryController(service)
 
-router.get('/:id', validate(getCategoryByIdValidation), category.getById);
 
-router.post('/',validate(createCategoryValidation), category.create)
-
-router.put('/:id',category.update);
-
-router.delete('/:id', category.remove );
+router.get('/', controller.list)
+router.get('/:id', validate(getCategoryByIdValidation), controller.getById);
+router.post('/',validate(createCategoryValidation), controller.create)
+router.put('/:id',controller.update);
+router.delete('/:id', controller.remove );
 
 export default router;

@@ -1,39 +1,54 @@
-import { getPrisma } from "../prisma";
+import type { IProfileRepository } from "../repository/profile.repository";
 import type { Profile } from "../src/generated/prisma/client";
-import * as profileRepo from "../repository/profile.repository";
 
-const prisma = getPrisma()
-
-export const createProfile = async (data: {
+export interface IProfileService {
+  create(data: {
     name: string;
     gender: string;
     address: string;
     profile_picture_url?: string;
     userId: number;
-}): Promise<Profile> => {
-    const exist = await profileRepo.findByUserId(data.userId)
-    if (exist) throw new Error("Profile sudah ada")
+  }): Promise<Profile>;
 
-    return profileRepo.create(data)
+  getById(id: number): Promise<Profile>;
+
+  update(id: number, data: Partial<Profile>): Promise<Profile>;
+
+  delete(id: number): Promise<void>;
 }
 
-export const getProfileById = async (id: number) => {
-    const profile = await prisma.profile.findUnique({
-        where: {
-            id
-        }
-    })
+export class ProfileService implements IProfileService {
+  constructor(
+    private profileRepo: IProfileRepository
+  ) {}
 
-    if (!profile) throw new Error("Profile tidak ditemukan")
+  async create(data: {
+    name: string;
+    gender: string;
+    address: string;
+    profile_picture_url?: string;
+    userId: number;
+  }): Promise<Profile> {
+    const exist = await this.profileRepo.findUserById(data.userId);
+    if (exist) throw new Error("Profile sudah ada");
 
-    return profile
-}
+    return this.profileRepo.create(data);
+  }
 
-export const updateProfile = async (id: number, data: Partial<Profile>) => {
-    return profileRepo.update(id, data)
-}
+  async getById(id: number): Promise<Profile> {
+    const profile = await this.profileRepo.findProfileById(id);
+    if (!profile) throw new Error("Profile tidak ditemukan");
 
-export const deleteProfile = async (id: number) => {
-   await getProfileById(id)
-   return profileRepo.remove(id)
+    return profile;
+  }
+
+  async update(id: number, data: Partial<Profile>): Promise<Profile> {
+    await this.getById(id);
+    return this.profileRepo.update(id, data);
+  }
+
+  async delete(id: number): Promise<void> {
+    await this.getById(id);
+    await this.profileRepo.remove(id);
+  }
 }
