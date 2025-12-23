@@ -14,6 +14,7 @@ const controller = new CategoryController(service)
 
 
 router.get('/', controller.list)
+router.get('/stats', controller.getCategoryStats)
 router.get('/:id', validate(getCategoryByIdValidation), controller.getById);
 router.post('/',validate(createCategoryValidation), controller.create)
 router.put('/:id',controller.update);

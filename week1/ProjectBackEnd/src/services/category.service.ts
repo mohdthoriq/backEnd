@@ -18,16 +18,25 @@ export interface CategoryListResponse {
   currentPage: number;
 }
 
+export interface CategoryDashboardStats {
+  id: number
+  name: string
+  totalProducts: number
+  totalStock: number
+  avgPrice: number
+}
+
 export interface ICategoryService {
   list(params: FindAllCategoryParams): Promise<CategoryListResponse>;
   getById(id: string): Promise<Category>;
   create(name: string): Promise<Category>;
   update(id: string, data: Partial<Category>): Promise<Category>;
   delete(id: string): Promise<Category>;
+  getCategoryDashboardStats(): Promise<CategoryDashboardStats[]>
 }
 
 export class CategoryService implements ICategoryService {
-  constructor(private categoryRepo: ICategoryRepository) {}
+  constructor(private categoryRepo: ICategoryRepository) { }
 
   async list(params: FindAllCategoryParams): Promise<CategoryListResponse> {
     const { page, limit, search, sortBy, sortOrder } = params;
@@ -96,5 +105,32 @@ export class CategoryService implements ICategoryService {
 
   async delete(id: string): Promise<Category> {
     return this.categoryRepo.softDelete(Number(id));
+  }
+
+  async getCategoryDashboardStats() {
+    const categories = await this.categoryRepo.getCategoryProductStats()
+
+    return categories.map(cat => {
+      const totalStock = cat.products.reduce(
+        (a, b) => a + b.stock,
+        0
+      )
+
+      const totalPrice = cat.products.reduce(
+        (a, b) => a + b.price.toNumber(),
+        0
+      )
+
+      return {
+        id: cat.id,
+        name: cat.name,
+        totalProducts: cat.products.length,
+        totalStock,
+        avgPrice:
+          cat.products.length === 0
+            ? 0
+            : totalPrice / cat.products.length
+      }
+    })
   }
 }

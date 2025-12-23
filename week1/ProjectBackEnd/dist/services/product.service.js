@@ -43,5 +43,13 @@ export class ProductService {
         const numId = parseInt(id);
         return await this.productRepo.softDelete(numId);
     }
+    async exec() {
+        const stats = await this.productRepo.getStats();
+        const categoryStats = await this.productRepo.getProductsByCategoryStats();
+        return {
+            overView: stats,
+            byCategory: categoryStats
+        };
+    }
 }
 //# sourceMappingURL=product.service.js.map

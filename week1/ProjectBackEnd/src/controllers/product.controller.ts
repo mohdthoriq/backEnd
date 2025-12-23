@@ -8,12 +8,13 @@ export interface IProductController {
     create(req: Request, res: Response): Promise<void>
     update(req: Request, res: Response): Promise<void>
     remove(req: Request, res: Response): Promise<void>
+    getStats(req: Request, res: Response): Promise<void>
 }
 
 export class ProductController implements IProductController {
     constructor(private productService: IProductService) { }
 
-    async list(req: Request, res: Response) {
+    list = async (req: Request, res: Response) => {
         const page = Number(req.query.page) || 1
         const limit = Number(req.query.limit) || 10
         const search = req.query.search as any
@@ -43,7 +44,7 @@ export class ProductController implements IProductController {
         )
     }
     
-    async getById(req: Request, res: Response) {
+    getById = async(req: Request, res: Response) => {
         if (!req.params.id) {
             throw new Error("ID tidak ditemukan");
         }
@@ -57,7 +58,7 @@ export class ProductController implements IProductController {
         )
     }
     
-    async create(req: Request, res: Response){
+    create = async (req: Request, res: Response) => {
         const file = req.file
         if (!file) throw new Error("image is required");
     
@@ -85,7 +86,7 @@ export class ProductController implements IProductController {
         )
     }
     
-    async update (req: Request, res: Response) {
+    update = async (req: Request, res: Response) => {
         if (!req.params.id) {
             throw new Error("ID tidak ditemukan");
         }
@@ -100,7 +101,7 @@ export class ProductController implements IProductController {
         )
     }
     
-    async remove(req: Request, res: Response) {
+    remove = async(req: Request, res: Response) => {
     
         const deleted = await this.productService.delete(req.params.id!);
     
@@ -108,6 +109,18 @@ export class ProductController implements IProductController {
             res,
             "product berhasil dihapus",
             deleted,
+        )
+    }
+
+    getStats = async (req: Request, res: Response) => {
+        const stats = await this.productService.exec()
+
+        successResponse(
+            res,
+            "Success",
+            stats,
+            null,
+            200
         )
     }
 }

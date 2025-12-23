@@ -14,7 +14,7 @@ export interface IOrderController {
 export class OrderController implements IOrderController {
   constructor(private orderService: IOrderService) {}
 
-  async checkout(req: Request, res: Response) {
+  checkout = async (req: Request, res: Response) => {
     if (!req.user) throw new Error("Unauthorized");
 
     const { items } = req.body;
@@ -33,7 +33,7 @@ export class OrderController implements IOrderController {
     );
   }
 
-  async list(req: Request, res: Response) {
+  list = async (req: Request, res: Response) => {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 10;
 
@@ -60,7 +60,7 @@ export class OrderController implements IOrderController {
     );
   }
 
-  async getById(req: Request, res: Response) {
+  getById = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
     if (isNaN(id)) throw new Error("ID tidak valid");
 
@@ -69,7 +69,7 @@ export class OrderController implements IOrderController {
     successResponse(res, "Success", data);
   }
 
-  async create(req: Request, res: Response) {
+  create = async (req: Request, res: Response) => {
     if (!req.user) throw new Error("Unauthorized");
 
     const { items } = req.body;
@@ -82,7 +82,7 @@ export class OrderController implements IOrderController {
     successResponse(res, "Order created successfully", data, null, 201);
   }
 
-  async update(req: Request, res: Response) {
+  update = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
     if (isNaN(id)) throw new Error("Order ID tidak valid");
 
@@ -93,7 +93,7 @@ export class OrderController implements IOrderController {
     successResponse(res, "Order updated successfully", data);
   }
 
-  async remove(req: Request, res: Response) {
+  remove = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
     if (isNaN(id)) throw new Error("Order ID tidak valid");
 

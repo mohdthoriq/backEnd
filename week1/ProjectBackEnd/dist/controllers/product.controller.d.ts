@@ -6,6 +6,7 @@ export interface IProductController {
     create(req: Request, res: Response): Promise<void>;
     update(req: Request, res: Response): Promise<void>;
     remove(req: Request, res: Response): Promise<void>;
+    getStats(req: Request, res: Response): Promise<void>;
 }
 export declare class ProductController implements IProductController {
     private productService;
@@ -15,5 +16,6 @@ export declare class ProductController implements IProductController {
     create(req: Request, res: Response): Promise<void>;
     update(req: Request, res: Response): Promise<void>;
     remove(req: Request, res: Response): Promise<void>;
+    getStats(req: Request, res: Response): Promise<void>;
 }
 //# sourceMappingURL=product.controller.d.ts.map

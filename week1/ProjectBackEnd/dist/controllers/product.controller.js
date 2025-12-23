@@ -60,5 +60,9 @@ export class ProductController {
         const deleted = await this.productService.delete(req.params.id);
         successResponse(res, "product berhasil dihapus", deleted);
     }
+    async getStats(req, res) {
+        const stats = await this.productService.exec();
+        successResponse(res, "Success", stats, null, 200);
+    }
 }
 //# sourceMappingURL=product.controller.js.map

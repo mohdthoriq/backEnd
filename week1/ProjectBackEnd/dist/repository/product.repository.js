@@ -55,5 +55,36 @@ export class ProductRepository {
             }
         });
     }
+    async findComplex(categoryName, maxPrice) {
+        return await this.prisma.product.findMany({
+            where: {
+                OR: [
+                    {
+                        AND: [
+                            { category: { name: categoryName } },
+                            { price: { lte: maxPrice } }
+                        ]
+                    },
+                    { category: { name: 'Aksesoris' } }
+                ]
+            }
+        });
+    }
+    async getStats() {
+        return await this.prisma.product.aggregate({
+            _count: { id: true },
+            _avg: { price: true },
+            _sum: { stock: true },
+            _min: { price: true },
+            _max: { price: true }
+        });
+    }
+    async getProductsByCategoryStats() {
+        return await this.prisma.product.groupBy({
+            by: ['categoryId'],
+            _count: { id: true },
+            _avg: { price: true }
+        });
+    }
 }
 //# sourceMappingURL=product.repository.js.map

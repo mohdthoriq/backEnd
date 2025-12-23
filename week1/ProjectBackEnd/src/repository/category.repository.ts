@@ -1,4 +1,5 @@
 import type { Prisma, Category, PrismaClient } from "../src/generated/prisma/client";
+import type { Decimal } from "../src/generated/prisma/internal/prismaNamespace";
 
 export interface ICategoryRepository {
   list(
@@ -13,10 +14,18 @@ export interface ICategoryRepository {
   create(data: Prisma.CategoryCreateInput): Promise<Category>;
   update(id: number, data: Prisma.CategoryUpdateInput): Promise<Category>;
   softDelete(id: number): Promise<Category>;
+  getCategoryProductStats(): Promise<{
+    id: number;
+    name: string;
+    products: {
+      price: Decimal;
+      stock: number;
+    }[];
+  }[]>;
 }
 
 export class CategoryRepository implements ICategoryRepository {
-  constructor(private prisma: PrismaClient) {}
+  constructor(private prisma: PrismaClient) { }
 
   async list(
     skip: number,
@@ -84,6 +93,23 @@ export class CategoryRepository implements ICategoryRepository {
         deletedAt: new Date()
       }
     });
+  }
+
+  async getCategoryProductStats() {
+    return this.prisma.category.findMany({
+      where: { deletedAt: null },
+      select: {
+        id: true,
+        name: true,
+        products: {
+          where: { deletedAt: null },
+          select: {
+            price: true,
+            stock: true
+          }
+        }
+      }
+    })
   }
 }
 

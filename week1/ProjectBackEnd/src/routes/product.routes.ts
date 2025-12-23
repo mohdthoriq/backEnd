@@ -16,13 +16,11 @@ const service = new ProductService(repo)
 const controller = new ProductController(service)
 
 router.get('/', controller.list)
-
+router.get('/stats', controller.getStats)
 router.get('/:id', validate(getProductsByIdValidation), controller.getById);
-
 router.post('/',authenticate, upload.single('image'), validate(createProductValidation), controller.create);
-
 router.put('/:id', controller.update);
-
 router.delete('/:id', controller.remove );
+
 
 export default router; 

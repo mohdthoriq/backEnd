@@ -8,13 +8,14 @@ export interface ICategoryController {
   create(req: Request, res: Response): Promise<void>;
   update(req: Request, res: Response): Promise<void>;
   remove(req: Request, res: Response): Promise<void>;
+  getCategoryStats(req: Request, res: Response): Promise<void>;
 }
 
 
 export class CategoryController implements ICategoryController {
   constructor(private categoryService: ICategoryService) {}
 
-  async list(req: Request, res: Response) {
+  list = async(req: Request, res: Response) => {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 10;
     const search = req.query.search as any;
@@ -44,7 +45,7 @@ export class CategoryController implements ICategoryController {
     );
   }
 
-  async getById(req: Request, res: Response) {
+  getById = async (req: Request, res: Response) =>  {
     if (!req.params.id) {
       throw new Error("ID category tidak ditemukan");
     }
@@ -58,7 +59,7 @@ export class CategoryController implements ICategoryController {
     );
   }
 
-  async create(req: Request, res: Response) {
+  create = async (req: Request, res: Response) => {
     const { name } = req.body;
 
     if (!name) {
@@ -76,7 +77,7 @@ export class CategoryController implements ICategoryController {
     );
   }
 
-  async update(req: Request, res: Response) {
+  update = async (req: Request, res: Response) => {
     if (!req.params.id) {
       throw new Error("ID category tidak ditemukan");
     }
@@ -93,7 +94,7 @@ export class CategoryController implements ICategoryController {
     );
   }
 
-  async remove(req: Request, res: Response) {
+  remove = async (req: Request, res: Response) => {
     if (!req.params.id) {
       throw new Error("ID category tidak ditemukan");
     }
@@ -106,5 +107,11 @@ export class CategoryController implements ICategoryController {
       deleted
     );
   }
+
+  getCategoryStats = async (req: Request, res: Response) => {
+  const data = await this.categoryService.getCategoryDashboardStats()
+  successResponse(res, "Category stats", data)
+}
+
 }
 
