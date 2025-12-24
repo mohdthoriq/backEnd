@@ -4,7 +4,7 @@ export class ProductController {
     constructor(productService) {
         this.productService = productService;
     }
-    async list(req, res) {
+    list = async (req, res) => {
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 10;
         const search = req.query.search;
@@ -24,15 +24,15 @@ export class ProductController {
             totalPages: result.totalPages
         };
         successResponse(res, "Daftar Product ditemukan", result, pagination);
-    }
-    async getById(req, res) {
+    };
+    getById = async (req, res) => {
         if (!req.params.id) {
             throw new Error("ID tidak ditemukan");
         }
         const product = await this.productService.getById(req.params.id);
         successResponse(res, "Product ditemukan", product);
-    }
-    async create(req, res) {
+    };
+    create = async (req, res) => {
         const file = req.file;
         if (!file)
             throw new Error("image is required");
@@ -48,21 +48,21 @@ export class ProductController {
         };
         const newProduct = await this.productService.create(data);
         successResponse(res, "product berhasil ditambahkan", newProduct, null, 201);
-    }
-    async update(req, res) {
+    };
+    update = async (req, res) => {
         if (!req.params.id) {
             throw new Error("ID tidak ditemukan");
         }
         const product = await this.productService.update(req.params.id, req.body);
         successResponse(res, "Product berhasil diperbarui", product);
-    }
-    async remove(req, res) {
+    };
+    remove = async (req, res) => {
         const deleted = await this.productService.delete(req.params.id);
         successResponse(res, "product berhasil dihapus", deleted);
-    }
-    async getStats(req, res) {
+    };
+    getStats = async (req, res) => {
         const stats = await this.productService.exec();
         successResponse(res, "Success", stats, null, 200);
-    }
+    };
 }
 //# sourceMappingURL=product.controller.js.map

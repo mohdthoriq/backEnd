@@ -1,17 +1,19 @@
-import express, { type Application, type NextFunction, type Request, type Response } from "express";
+import express, { type Application, type Request, type Response } from "express";
 import cors from "cors";
 import morgan from "morgan";
 import helmet from "helmet";
 import { successResponse } from "./utils/response";
 import { errorHandler } from "./middlewares/error.handler";
+import { requestLogger } from "./middlewares/logging.middleware";
+import { authenticate } from "./middlewares/auth.middlleware";
 import productRouter from "./routes/product.routes";
 import userRouter from "./routes/user.router";
 import categoryRouter from "./routes/category.routes";
 import orderRouter from "./routes/orders.routes";
 import orderItemRouter from "./routes/order_items.routes";
 import profileRouter from "./routes/profile.routes";
-import { requestLogger } from "./middlewares/logging.middleware";
-import { authenticate } from "./middlewares/auth.middlleware";
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "./utils/swagger";
 
 const app: Application = express()
 
@@ -29,6 +31,8 @@ app.use(cors()) // Middleware biar bisa di akses dari frontend
 //           Sangat penting untuk API yang akan diakses oleh frontend dari domain berbeda.
 
 app.use(requestLogger)
+
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
 app.use('/auth', userRouter)
 

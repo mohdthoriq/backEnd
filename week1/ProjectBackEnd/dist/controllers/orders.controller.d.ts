@@ -11,11 +11,11 @@ export interface IOrderController {
 export declare class OrderController implements IOrderController {
     private orderService;
     constructor(orderService: IOrderService);
-    checkout(req: Request, res: Response): Promise<void>;
-    list(req: Request, res: Response): Promise<void>;
-    getById(req: Request, res: Response): Promise<void>;
-    create(req: Request, res: Response): Promise<void>;
-    update(req: Request, res: Response): Promise<void>;
-    remove(req: Request, res: Response): Promise<void>;
+    checkout: (req: Request, res: Response) => Promise<void>;
+    list: (req: Request, res: Response) => Promise<void>;
+    getById: (req: Request, res: Response) => Promise<void>;
+    create: (req: Request, res: Response) => Promise<void>;
+    update: (req: Request, res: Response) => Promise<void>;
+    remove: (req: Request, res: Response) => Promise<void>;
 }
 //# sourceMappingURL=orders.controller.d.ts.map

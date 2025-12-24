@@ -15,12 +15,20 @@ export interface CategoryListResponse {
     totalPages: number;
     currentPage: number;
 }
+export interface CategoryDashboardStats {
+    id: number;
+    name: string;
+    totalProducts: number;
+    totalStock: number;
+    avgPrice: number;
+}
 export interface ICategoryService {
     list(params: FindAllCategoryParams): Promise<CategoryListResponse>;
     getById(id: string): Promise<Category>;
     create(name: string): Promise<Category>;
     update(id: string, data: Partial<Category>): Promise<Category>;
     delete(id: string): Promise<Category>;
+    getCategoryDashboardStats(): Promise<CategoryDashboardStats[]>;
 }
 export declare class CategoryService implements ICategoryService {
     private categoryRepo;
@@ -30,5 +38,12 @@ export declare class CategoryService implements ICategoryService {
     create(name: string): Promise<Category>;
     update(id: string, data: Partial<Category>): Promise<Category>;
     delete(id: string): Promise<Category>;
+    getCategoryDashboardStats(): Promise<{
+        id: number;
+        name: string;
+        totalProducts: number;
+        totalStock: number;
+        avgPrice: number;
+    }[]>;
 }
 //# sourceMappingURL=category.service.d.ts.map

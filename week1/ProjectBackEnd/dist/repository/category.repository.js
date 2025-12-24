@@ -56,5 +56,21 @@ export class CategoryRepository {
             }
         });
     }
+    async getCategoryProductStats() {
+        return this.prisma.category.findMany({
+            where: { deletedAt: null },
+            select: {
+                id: true,
+                name: true,
+                products: {
+                    where: { deletedAt: null },
+                    select: {
+                        price: true,
+                        stock: true
+                    }
+                }
+            }
+        });
+    }
 }
 //# sourceMappingURL=category.repository.js.map

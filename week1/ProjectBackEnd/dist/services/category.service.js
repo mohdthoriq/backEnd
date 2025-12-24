@@ -49,5 +49,21 @@ export class CategoryService {
     async delete(id) {
         return this.categoryRepo.softDelete(Number(id));
     }
+    async getCategoryDashboardStats() {
+        const categories = await this.categoryRepo.getCategoryProductStats();
+        return categories.map(cat => {
+            const totalStock = cat.products.reduce((a, b) => a + b.stock, 0);
+            const totalPrice = cat.products.reduce((a, b) => a + b.price.toNumber(), 0);
+            return {
+                id: cat.id,
+                name: cat.name,
+                totalProducts: cat.products.length,
+                totalStock,
+                avgPrice: cat.products.length === 0
+                    ? 0
+                    : totalPrice / cat.products.length
+            };
+        });
+    }
 }
 //# sourceMappingURL=category.service.js.map
